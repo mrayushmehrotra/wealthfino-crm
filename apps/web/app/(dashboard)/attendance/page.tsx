@@ -1,0 +1,138 @@
+"use client"
+
+import { motion } from "framer-motion"
+import { IconCalendarCheck, IconChevronLeft, IconChevronRight } from "@tabler/icons-react"
+import {
+  fadeInUp,
+  staggerContainer,
+  slideUp,
+  staggerFast,
+} from "@/lib/animation-variants"
+
+const ATTENDANCE = [
+  { name: "Krishna Pathak", checkIn: "09:02 AM", checkOut: "06:15 PM", hours: "9h 13m", status: "Present" },
+  { name: "Priya Sharma", checkIn: "08:55 AM", checkOut: "06:00 PM", hours: "9h 05m", status: "Present" },
+  { name: "Rahul Verma", checkIn: "—", checkOut: "—", hours: "—", status: "Absent" },
+  { name: "Anita Singh", checkIn: "—", checkOut: "—", hours: "—", status: "On Leave" },
+  { name: "Deepak Kumar", checkIn: "09:30 AM", checkOut: "—", hours: "—", status: "Present" },
+]
+
+const STATUS_STYLES: Record<string, string> = {
+  Present: "bg-[#DCFCE7] text-[#22C55E]",
+  Absent: "bg-[#FEE2E2] text-[#EF4444]",
+  "On Leave": "bg-[#FEF3C7] text-[#F59E0B]",
+}
+
+export default function AttendancePage() {
+  const today = new Date().toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+
+  return (
+    <motion.div
+      className="max-w-7xl mx-auto space-y-6"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div className="flex items-center justify-between" variants={fadeInUp}>
+        <div>
+          <h1 className="text-2xl font-bold text-[#1A202C]">Attendance</h1>
+          <p className="text-sm text-[#6B7280] mt-1">{today}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <motion.button
+            className="h-9 w-9 rounded-lg border border-[#E5E7EB] flex items-center justify-center hover:bg-[#F5F7FA] transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <IconChevronLeft size={16} className="text-[#6B7280]" />
+          </motion.button>
+          <motion.button
+            className="h-9 w-9 rounded-lg border border-[#E5E7EB] flex items-center justify-center hover:bg-[#F5F7FA] transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <IconChevronRight size={16} className="text-[#6B7280]" />
+          </motion.button>
+        </div>
+      </motion.div>
+
+      <motion.div className="grid grid-cols-3 gap-4" variants={staggerContainer}>
+        {[
+          { label: "Present", value: 9, color: "text-[#22C55E]", bg: "bg-[#DCFCE7]" },
+          { label: "Absent", value: 1, color: "text-[#EF4444]", bg: "bg-[#FEE2E2]" },
+          { label: "On Leave", value: 2, color: "text-[#F59E0B]", bg: "bg-[#FEF3C7]" },
+        ].map(({ label, value, color, bg }) => (
+          <motion.div
+            key={label}
+            variants={slideUp}
+            whileHover={{ y: -3 }}
+            className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+          >
+            <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider mb-2">
+              {label}
+            </p>
+            <motion.p
+              className={`text-3xl font-bold ${color}`}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+            >
+              {value}
+            </motion.p>
+            <div className={`mt-3 h-1 rounded-full ${bg}`} />
+          </motion.div>
+        ))}
+      </motion.div>
+
+      <motion.div
+        className="bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden"
+        variants={slideUp}
+      >
+        <div className="px-5 py-4 border-b border-[#E5E7EB] flex items-center gap-2">
+          <IconCalendarCheck size={18} className="text-[#22C55E]" />
+          <span className="font-semibold text-[#1A202C] text-sm">Today&apos;s Attendance</span>
+        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-[#E5E7EB]">
+              {["Employee", "Check-In", "Check-Out", "Hours", "Status"].map((h) => (
+                <th
+                  key={h}
+                  className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3"
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <motion.tbody className="divide-y divide-[#F3F4F6]" variants={staggerFast}>
+            {ATTENDANCE.map((row) => (
+              <motion.tr
+                key={row.name}
+                variants={fadeInUp}
+                className="hover:bg-[#F9FAFB] transition-colors"
+              >
+                <td className="px-5 py-4 font-medium text-[#1A202C]">{row.name}</td>
+                <td className="px-5 py-4 text-[#6B7280]">{row.checkIn}</td>
+                <td className="px-5 py-4 text-[#6B7280]">{row.checkOut}</td>
+                <td className="px-5 py-4 text-[#6B7280]">{row.hours}</td>
+                <td className="px-5 py-4">
+                  <span
+                    className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[row.status]}`}
+                  >
+                    {row.status}
+                  </span>
+                </td>
+              </motion.tr>
+            ))}
+          </motion.tbody>
+        </table>
+      </motion.div>
+    </motion.div>
+  )
+}

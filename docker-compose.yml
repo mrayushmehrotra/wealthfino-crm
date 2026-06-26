@@ -1,0 +1,38 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: wealthfino_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: wealthfino_root
+      MYSQL_DATABASE: wealthfino_crm
+      MYSQL_USER: wealthfino
+      MYSQL_PASSWORD: wealthfino_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pwealthfino_root"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Test database (used in integration tests)
+  mysql_test:
+    image: mysql:8.4
+    container_name: wealthfino_mysql_test
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: wealthfino_root
+      MYSQL_DATABASE: wealthfino_test
+      MYSQL_USER: wealthfino
+      MYSQL_PASSWORD: wealthfino_pass
+    ports:
+      - "3307:3306"
+    tmpfs:
+      - /var/lib/mysql   # in-memory for fast tests
+
+volumes:
+  mysql_data:
+    driver: local

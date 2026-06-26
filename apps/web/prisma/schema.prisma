@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users & Auth ─────────────────────────────────────────────────────────────
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role      @default(EMPLOYEE)
+  employee     Employee?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+// ─── Employees ────────────────────────────────────────────────────────────────
+
+model Employee {
+  id           Int            @id @default(autoincrement())
+  userId       Int            @unique @map("user_id")
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName    String         @map("first_name")
+  lastName     String         @map("last_name")
+  phone        String?
+  department   String?
+  designation  String?
+  joinedAt     DateTime       @default(now()) @map("joined_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  attendance    Attendance[]
+  leaveRequests LeaveRequest[]
+  tasks         Task[]
+  dailyReports  DailyReport[]
+  workLogs      WorkLog[]
+
+  @@map("employees")
+}
+
+// ─── Attendance ───────────────────────────────────────────────────────────────
+
+model Attendance {
+  id         Int              @id @default(autoincrement())
+  employeeId Int              @map("employee_id")
+  employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date       DateTime         @db.Date
+  checkIn    DateTime?        @map("check_in")
+  checkOut   DateTime?        @map("check_out")
+  status     AttendanceStatus @default(PRESENT)
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  @@unique([employeeId, date])
+  @@map("attendance")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  ON_LEAVE
+  HALF_DAY
+}
+
+// ─── Leave ────────────────────────────────────────────────────────────────────
+
+model LeaveRequest {
+  id         Int         @id @default(autoincrement())
+  employeeId Int         @map("employee_id")
+  employee   Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type       LeaveType
+  fromDate   DateTime    @map("from_date") @db.Date
+  toDate     DateTime    @map("to_date") @db.Date
+  days       Int
+  reason     String?     @db.Text
+  status     LeaveStatus @default(PENDING)
+  reviewedBy Int?        @map("reviewed_by")
+  reviewedAt DateTime?   @map("reviewed_at")
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  @@map("leave_requests")
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  CASUAL
+  MATERNITY
+  PATERNITY
+  UNPAID
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─── Tasks ────────────────────────────────────────────────────────────────────
+
+model Task {
+  id          Int          @id @default(autoincrement())
+  title       String
+  description String?      @db.Text
+  employeeId  Int          @map("employee_id")
+  employee    Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  dueDate     DateTime?    @map("due_date") @db.Date
+  priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(TODO)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@map("tasks")
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+// ─── Daily Reports ────────────────────────────────────────────────────────────
+
+model DailyReport {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int      @map("employee_id")
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date        DateTime @db.Date
+  summary     String   @db.Text
+  hoursLogged Float    @map("hours_logged")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([employeeId, date])
+  @@map("daily_reports")
+}
+
+// ─── Work Logs ────────────────────────────────────────────────────────────────
+
+model WorkLog {
+  id         Int      @id @default(autoincrement())
+  employeeId Int      @map("employee_id")
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date       DateTime @db.Date
+  task       String
+  startTime  DateTime @map("start_time")
+  endTime    DateTime @map("end_time")
+  hours      Float
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("work_logs")
+}
+
+// ─── Announcements ────────────────────────────────────────────────────────────
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String   @db.Text
+  tag       String?
+  authorId  Int      @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("announcements")
+}
+
+// ─── Payroll ──────────────────────────────────────────────────────────────────
+
+model Payroll {
+  id          Int           @id @default(autoincrement())
+  employeeId  Int           @map("employee_id")
+  month       Int
+  year        Int
+  basic       Decimal       @db.Decimal(12, 2)
+  allowances  Decimal       @default(0) @db.Decimal(12, 2)
+  deductions  Decimal       @default(0) @db.Decimal(12, 2)
+  netPay      Decimal       @map("net_pay") @db.Decimal(12, 2)
+  status      PayrollStatus @default(DRAFT)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@unique([employeeId, month, year])
+  @@map("payroll")
+}
+
+enum PayrollStatus {
+  DRAFT
+  PROCESSED
+  PAID
+}
