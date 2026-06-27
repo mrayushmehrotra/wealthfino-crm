@@ -20,44 +20,7 @@ import {
   progressBar,
 } from "@/lib/animation-variants"
 
-const STATS = [
-  {
-    label: "Total Employees",
-    value: "12",
-    badge: "+2 this month",
-    badgeColor: "bg-[#DCFCE7] text-[#22C55E]",
-    icon: IconUsers,
-    iconBg: "bg-[#DCFCE7]",
-    iconColor: "text-[#22C55E]",
-  },
-  {
-    label: "Present Today",
-    value: "9",
-    badge: "75%",
-    badgeColor: "bg-[#DCFCE7] text-[#22C55E]",
-    icon: IconCalendarCheck,
-    iconBg: "bg-[#DCFCE7]",
-    iconColor: "text-[#22C55E]",
-  },
-  {
-    label: "Absent",
-    value: "1",
-    badge: "8.3%",
-    badgeColor: "bg-[#FEE2E2] text-[#EF4444]",
-    icon: IconUserX,
-    iconBg: "bg-[#FEE2E2]",
-    iconColor: "text-[#EF4444]",
-  },
-  {
-    label: "On Leave",
-    value: "2",
-    badge: "16.6%",
-    badgeColor: "bg-[#FEF3C7] text-[#F59E0B]",
-    icon: IconBeach,
-    iconBg: "bg-[#FEF3C7]",
-    iconColor: "text-[#F59E0B]",
-  },
-]
+import { useQuery } from "@tanstack/react-query"
 
 const QUICK_ACTIONS = [
   { label: "Attendance", href: "/attendance", icon: IconCalendarCheck, iconBg: "bg-[#DCFCE7]", iconColor: "text-[#22C55E]" },
@@ -79,6 +42,61 @@ function formatDate() {
 }
 
 export default function DashboardPage() {
+  const { data: statsData, isLoading } = useQuery({
+    queryKey: ["dashboardStats"],
+    queryFn: async () => {
+      const res = await fetch("/api/dashboard/stats")
+      if (!res.ok) throw new Error("Failed to fetch stats")
+      return res.json()
+    },
+  })
+
+  const stats = statsData?.data || {
+    totalEmployees: 0,
+    presentToday: 0,
+    absent: 0,
+    onLeave: 0,
+  }
+
+  const dynamicStats = [
+    {
+      label: "Total Employees",
+      value: stats.totalEmployees.toString(),
+      badge: "Real-time",
+      badgeColor: "bg-[#DCFCE7] text-[#22C55E]",
+      icon: IconUsers,
+      iconBg: "bg-[#DCFCE7]",
+      iconColor: "text-[#22C55E]",
+    },
+    {
+      label: "Present Today",
+      value: stats.presentToday.toString(),
+      badge: "Tracking Pending",
+      badgeColor: "bg-[#DCFCE7] text-[#22C55E]",
+      icon: IconCalendarCheck,
+      iconBg: "bg-[#DCFCE7]",
+      iconColor: "text-[#22C55E]",
+    },
+    {
+      label: "Absent",
+      value: stats.absent.toString(),
+      badge: "Tracking Pending",
+      badgeColor: "bg-[#FEE2E2] text-[#EF4444]",
+      icon: IconUserX,
+      iconBg: "bg-[#FEE2E2]",
+      iconColor: "text-[#EF4444]",
+    },
+    {
+      label: "On Leave",
+      value: stats.onLeave.toString(),
+      badge: "Tracking Pending",
+      badgeColor: "bg-[#FEF3C7] text-[#F59E0B]",
+      icon: IconBeach,
+      iconBg: "bg-[#FEF3C7]",
+      iconColor: "text-[#F59E0B]",
+    },
+  ]
+
   return (
     <motion.div
       className="max-w-7xl mx-auto space-y-6"
@@ -108,7 +126,7 @@ export default function DashboardPage() {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         variants={staggerContainer}
       >
-        {STATS.map(({ label, value, badge, badgeColor, icon: Icon, iconBg, iconColor }) => (
+        {dynamicStats.map(({ label, value, badge, badgeColor, icon: Icon, iconBg, iconColor }) => (
           <motion.div
             key={label}
             variants={slideUp}
@@ -134,7 +152,13 @@ export default function DashboardPage() {
             <p className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider mb-1">
               {label}
             </p>
-            <p className="text-3xl font-bold text-[#1A202C]">{value}</p>
+            <p className="text-3xl font-bold text-[#1A202C]">
+              {isLoading ? (
+                <span className="animate-pulse bg-gray-200 text-transparent rounded">00</span>
+              ) : (
+                value
+              )}
+            </p>
           </motion.div>
         ))}
       </motion.div>
