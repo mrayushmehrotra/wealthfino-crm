@@ -9,13 +9,7 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const ATTENDANCE = [
-  { name: "Krishna Pathak", checkIn: "09:02 AM", checkOut: "06:15 PM", hours: "9h 13m", status: "Present" },
-  { name: "Priya Sharma", checkIn: "08:55 AM", checkOut: "06:00 PM", hours: "9h 05m", status: "Present" },
-  { name: "Rahul Verma", checkIn: "—", checkOut: "—", hours: "—", status: "Absent" },
-  { name: "Anita Singh", checkIn: "—", checkOut: "—", hours: "—", status: "On Leave" },
-  { name: "Deepak Kumar", checkIn: "09:30 AM", checkOut: "—", hours: "—", status: "Present" },
-]
+const ATTENDANCE: any[] = []
 
 const STATUS_STYLES: Record<string, string> = {
   Present: "bg-[#DCFCE7] text-[#22C55E]",

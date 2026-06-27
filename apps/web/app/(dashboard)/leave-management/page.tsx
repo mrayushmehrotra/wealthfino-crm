@@ -9,11 +9,7 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const LEAVES = [
-  { name: "Priya Sharma", type: "Sick Leave", from: "27 Jun", to: "28 Jun", days: 2, status: "Pending", reason: "Fever" },
-  { name: "Anita Singh", type: "Annual Leave", from: "25 Jun", to: "26 Jun", days: 2, status: "Approved", reason: "Family function" },
-  { name: "Deepak Kumar", type: "Casual Leave", from: "30 Jun", to: "30 Jun", days: 1, status: "Rejected", reason: "Personal work" },
-]
+const LEAVES: any[] = []
 
 const STATUS_STYLES: Record<string, string> = {
   Pending: "bg-[#FEF3C7] text-[#F59E0B]",

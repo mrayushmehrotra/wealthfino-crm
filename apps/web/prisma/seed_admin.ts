@@ -30,6 +30,33 @@ async function main() {
   } else {
     console.log("Admin already exists.");
   }
+
+  // Seed a single employee
+  const empEmail = "employee@wealthfino.com";
+  const empExisting = await prisma.user.findUnique({ where: { email: empEmail } });
+  
+  if (!empExisting) {
+    const empPasswordHash = await bcrypt.hash("employee123", 12);
+    await prisma.user.create({
+      data: {
+        email: empEmail,
+        passwordHash: empPasswordHash,
+        role: "EMPLOYEE",
+        isApproved: true,
+        employee: {
+          create: {
+            firstName: "John",
+            lastName: "Doe",
+            department: "Engineering",
+            designation: "Software Engineer"
+          }
+        }
+      }
+    });
+    console.log(`Employee created: ${empEmail} / employee123`);
+  } else {
+    console.log("Employee already exists.");
+  }
 }
 
 main()

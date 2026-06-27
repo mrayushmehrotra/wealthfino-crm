@@ -9,13 +9,7 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const LOGS = [
-  { name: "Krishna Pathak", date: "26 Jun", task: "Q2 Review meeting", start: "09:00", end: "11:00", hours: 2 },
-  { name: "Krishna Pathak", date: "26 Jun", task: "Client calls", start: "11:30", end: "13:00", hours: 1.5 },
-  { name: "Priya Sharma", date: "26 Jun", task: "Dashboard UI", start: "09:00", end: "13:00", hours: 4 },
-  { name: "Priya Sharma", date: "26 Jun", task: "Code review", start: "14:00", end: "16:00", hours: 2 },
-  { name: "Deepak Kumar", date: "26 Jun", task: "Bug fixes", start: "09:30", end: "18:30", hours: 9 },
-]
+const LOGS: any[] = []
 
 export default function WorkLogPage() {
   return (

@@ -9,12 +9,7 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const FAQS = [
-  { q: "How do I apply for leave?", a: "Go to Leave Management → Apply Leave and fill out the form. Your manager will be notified for approval." },
-  { q: "How do I submit my daily report?", a: "Visit the Daily Reports page and click Submit Report. Fill in your tasks and hours worked." },
-  { q: "How is my performance score calculated?", a: "Your score is based on task completion rate, attendance percentage, and daily report submission consistency." },
-  { q: "Can I edit a submitted work log?", a: "Submitted logs can be edited within 24 hours. Contact your admin for changes after that." },
-]
+const FAQS: any[] = []
 
 export default function SupportPage() {
   return (

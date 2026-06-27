@@ -9,13 +9,7 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const TASKS = [
-  { title: "Update employee handbook", assignee: "Krishna Pathak", due: "28 Jun", priority: "High", status: "In Progress" },
-  { title: "Prepare Q2 payroll report", assignee: "Anita Singh", due: "30 Jun", priority: "High", status: "Todo" },
-  { title: "Design new onboarding flow", assignee: "Priya Sharma", due: "2 Jul", priority: "Medium", status: "In Progress" },
-  { title: "Fix attendance module bug", assignee: "Deepak Kumar", due: "27 Jun", priority: "High", status: "Done" },
-  { title: "Monthly team meeting", assignee: "Krishna Pathak", due: "29 Jun", priority: "Low", status: "Todo" },
-]
+const TASKS: any[] = []
 
 const STATUS_STYLES: Record<string, string> = {
   "In Progress": "bg-[#EFF6FF] text-[#3B82F6]",

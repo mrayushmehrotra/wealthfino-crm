@@ -8,13 +8,7 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const PAYROLL = [
-  { name: "Krishna Pathak", role: "Admin", basic: 80000, allowance: 15000, deduction: 8000, net: 87000 },
-  { name: "Priya Sharma", role: "Developer", basic: 65000, allowance: 10000, deduction: 6500, net: 68500 },
-  { name: "Deepak Kumar", role: "Developer", basic: 60000, allowance: 10000, deduction: 6000, net: 64000 },
-  { name: "Anita Singh", role: "Manager", basic: 70000, allowance: 12000, deduction: 7000, net: 75000 },
-  { name: "Rahul Verma", role: "Designer", basic: 50000, allowance: 8000, deduction: 5000, net: 53000 },
-]
+const PAYROLL: any[] = []
 
 const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`
 const totalPayroll = PAYROLL.reduce((s, r) => s + r.net, 0)

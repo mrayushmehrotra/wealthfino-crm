@@ -10,12 +10,7 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ]
 
-const EVENTS = [
-  { day: 27, title: "Q2 Review", color: "bg-[#DCFCE7] text-[#22C55E]" },
-  { day: 29, title: "Team Meeting", color: "bg-[#EFF6FF] text-[#3B82F6]" },
-  { day: 30, title: "Payroll Deadline", color: "bg-[#FEE2E2] text-[#EF4444]" },
-  { day: 4, title: "Holiday", color: "bg-[#FEF3C7] text-[#F59E0B]" },
-]
+const EVENTS: any[] = []
 
 export default function CalendarPage() {
   const now = new Date()

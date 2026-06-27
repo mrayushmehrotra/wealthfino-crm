@@ -9,12 +9,7 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const REPORTS = [
-  { name: "Krishna Pathak", date: "26 Jun 2026", summary: "Completed Q2 review, team sync, client calls", hours: 9, status: "Submitted" },
-  { name: "Priya Sharma", date: "26 Jun 2026", summary: "Worked on dashboard UI components, code review", hours: 8.5, status: "Submitted" },
-  { name: "Deepak Kumar", date: "26 Jun 2026", summary: "Fixed 3 bugs in attendance module", hours: 9, status: "Submitted" },
-  { name: "Rahul Verma", date: "26 Jun 2026", summary: "—", hours: 0, status: "Pending" },
-]
+const REPORTS: any[] = []
 
 export default function DailyReportsPage() {
   return (

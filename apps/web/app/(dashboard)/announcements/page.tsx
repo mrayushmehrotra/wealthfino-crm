@@ -9,11 +9,7 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const ANNOUNCEMENTS = [
-  { title: "Q2 Performance Reviews", body: "Performance reviews for Q2 2026 will begin on July 1st. Please ensure all self-assessments are completed by June 30th.", author: "Krishna Pathak", date: "26 Jun 2026", tag: "HR", tagColor: "bg-[#EFF6FF] text-[#3B82F6]" },
-  { title: "Office Holiday — July 4th", body: "The office will be closed on July 4th for the national holiday. Please plan your deliverables accordingly.", author: "Anita Singh", date: "24 Jun 2026", tag: "General", tagColor: "bg-[#DCFCE7] text-[#22C55E]" },
-  { title: "New Leave Policy Update", body: "The updated leave policy is now in effect. Casual leaves have been increased from 10 to 12 days per year.", author: "Krishna Pathak", date: "20 Jun 2026", tag: "Policy", tagColor: "bg-[#FEF3C7] text-[#F59E0B]" },
-]
+const ANNOUNCEMENTS: any[] = []
 
 export default function AnnouncementsPage() {
   return (

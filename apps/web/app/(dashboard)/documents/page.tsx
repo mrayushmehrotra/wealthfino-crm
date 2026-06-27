@@ -10,12 +10,7 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const DOCS = [
-  { name: "Employee Handbook 2026.pdf", type: "pdf", size: "2.4 MB", uploaded: "20 Jun 2026", by: "Krishna Pathak" },
-  { name: "Q2 Payroll Report.xlsx", type: "xls", size: "890 KB", uploaded: "25 Jun 2026", by: "Anita Singh" },
-  { name: "Leave Policy v2.docx", type: "doc", size: "340 KB", uploaded: "18 Jun 2026", by: "Krishna Pathak" },
-  { name: "Onboarding Checklist.pdf", type: "pdf", size: "1.1 MB", uploaded: "10 Jun 2026", by: "Priya Sharma" },
-]
+const DOCS: any[] = []
 
 const TYPE_ICONS: Record<string, ElementType> = { pdf: IconFileTypePdf, xls: IconFileTypeXls, doc: IconFileTypeDoc }
 const TYPE_COLORS: Record<string, string> = { pdf: "text-[#EF4444] bg-[#FEE2E2]", xls: "text-[#22C55E] bg-[#DCFCE7]", doc: "text-[#3B82F6] bg-[#EFF6FF]" }

@@ -9,13 +9,7 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const EMPLOYEES = [
-  { id: 1, name: "Krishna Pathak", role: "Admin", dept: "Management", status: "Present", joined: "Jan 2023" },
-  { id: 2, name: "Priya Sharma", role: "Developer", dept: "Engineering", status: "Present", joined: "Mar 2023" },
-  { id: 3, name: "Rahul Verma", role: "Designer", dept: "Design", status: "Absent", joined: "Jun 2023" },
-  { id: 4, name: "Anita Singh", role: "Manager", dept: "Operations", status: "On Leave", joined: "Aug 2022" },
-  { id: 5, name: "Deepak Kumar", role: "Developer", dept: "Engineering", status: "Present", joined: "Nov 2023" },
-]
+const EMPLOYEES: any[] = []
 
 const STATUS_STYLES: Record<string, string> = {
   Present: "bg-[#DCFCE7] text-[#22C55E]",

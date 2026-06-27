@@ -9,13 +9,7 @@ import {
   progressBar,
 } from "@/lib/animation-variants"
 
-const PERFORMANCE = [
-  { name: "Krishna Pathak", role: "Admin", tasks: 24, completed: 22, attendance: "98%", score: 95 },
-  { name: "Priya Sharma", role: "Developer", tasks: 18, completed: 17, attendance: "95%", score: 92 },
-  { name: "Deepak Kumar", role: "Developer", tasks: 20, completed: 18, attendance: "90%", score: 88 },
-  { name: "Anita Singh", role: "Manager", tasks: 15, completed: 12, attendance: "85%", score: 80 },
-  { name: "Rahul Verma", role: "Designer", tasks: 12, completed: 9, attendance: "72%", score: 70 },
-]
+const PERFORMANCE: any[] = []
 
 function ScoreBar({ score }: { score: number }) {
   const color = score >= 90 ? "#22C55E" : score >= 75 ? "#F59E0B" : "#EF4444"
