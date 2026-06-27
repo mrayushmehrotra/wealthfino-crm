@@ -18,16 +18,30 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 export default function LeaveManagementPage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData, isLoading, refetch } = useQuery({
     queryKey: ["LEAVES"],
     queryFn: async () => {
       const res = await fetch("/api/leave")
-      if (!res.ok) return { data: [] }
+      if (!res.ok) throw new Error("Failed to fetch")
       return res.json()
     },
   })
   
-  const LEAVES: any[] = queryData?.data || []
+  const stats = queryData?.data?.stats || { pending: 0, approved: 0, rejected: 0 }
+  const LEAVES = queryData?.data?.requests || []
+
+  const handleStatusUpdate = async (leaveId: number, status: "APPROVED" | "REJECTED") => {
+    try {
+      await fetch("/api/leave", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leaveId, status })
+      })
+      refetch()
+    } catch (err) {
+      console.error("Failed to update status", err)
+    }
+  }
 
   return (
     <motion.div
@@ -53,9 +67,9 @@ export default function LeaveManagementPage() {
 
       <motion.div className="grid grid-cols-3 gap-4" variants={staggerContainer}>
         {[
-          { label: "Pending", count: 3, style: "text-[#F59E0B] bg-[#FEF3C7]" },
-          { label: "Approved", count: 8, style: "text-[#22C55E] bg-[#DCFCE7]" },
-          { label: "Rejected", count: 2, style: "text-[#EF4444] bg-[#FEE2E2]" },
+          { label: "Pending", count: stats.pending, style: "text-[#F59E0B] bg-[#FEF3C7]" },
+          { label: "Approved", count: stats.approved, style: "text-[#22C55E] bg-[#DCFCE7]" },
+          { label: "Rejected", count: stats.rejected, style: "text-[#EF4444] bg-[#FEE2E2]" },
         ].map(({ label, count, style }) => (
           <motion.div
             key={label}
@@ -96,47 +110,56 @@ export default function LeaveManagementPage() {
             </tr>
           </thead>
           <motion.tbody className="divide-y divide-[#F3F4F6]" variants={staggerFast}>
-            {LEAVES.map((row) => (
-              <motion.tr
-                key={row.name + row.from}
-                variants={fadeInUp}
-                className="hover:bg-[#F9FAFB] transition-colors"
-              >
-                <td className="px-5 py-4 font-medium text-[#1A202C]">{row.name}</td>
-                <td className="px-5 py-4 text-[#6B7280]">{row.type}</td>
-                <td className="px-5 py-4 text-[#6B7280]">{row.from}</td>
-                <td className="px-5 py-4 text-[#6B7280]">{row.to}</td>
-                <td className="px-5 py-4 text-[#6B7280]">{row.days}</td>
-                <td className="px-5 py-4 text-[#6B7280] max-w-[160px] truncate">{row.reason}</td>
-                <td className="px-5 py-4">
-                  <span
-                    className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[row.status]}`}
-                  >
-                    {row.status}
-                  </span>
-                </td>
-                <td className="px-5 py-4">
-                  {row.status === "Pending" && (
-                    <div className="flex gap-2">
-                      <motion.button
-                        className="text-xs font-semibold text-[#22C55E] hover:underline"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        Approve
-                      </motion.button>
-                      <motion.button
-                        className="text-xs font-semibold text-[#EF4444] hover:underline"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        Reject
-                      </motion.button>
-                    </div>
-                  )}
-                </td>
-              </motion.tr>
-            ))}
+            {LEAVES.map((row: any) => {
+              const empName = `${row.employee.firstName} ${row.employee.lastName}`
+              const fromStr = new Date(row.fromDate).toLocaleDateString()
+              const toStr = new Date(row.toDate).toLocaleDateString()
+              const statusDisplay = row.status === "PENDING" ? "Pending" : row.status === "APPROVED" ? "Approved" : "Rejected"
+
+              return (
+                <motion.tr
+                  key={row.id}
+                  variants={fadeInUp}
+                  className="hover:bg-[#F9FAFB] transition-colors"
+                >
+                  <td className="px-5 py-4 font-medium text-[#1A202C]">{empName}</td>
+                  <td className="px-5 py-4 text-[#6B7280]">{row.type}</td>
+                  <td className="px-5 py-4 text-[#6B7280]">{fromStr}</td>
+                  <td className="px-5 py-4 text-[#6B7280]">{toStr}</td>
+                  <td className="px-5 py-4 text-[#6B7280]">{row.days}</td>
+                  <td className="px-5 py-4 text-[#6B7280] max-w-[160px] truncate">{row.reason || "N/A"}</td>
+                  <td className="px-5 py-4">
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[statusDisplay]}`}
+                    >
+                      {statusDisplay}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4">
+                    {row.status === "PENDING" && (
+                      <div className="flex gap-2">
+                        <motion.button
+                          onClick={() => handleStatusUpdate(row.id, "APPROVED")}
+                          className="text-xs font-semibold text-[#22C55E] hover:underline"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Approve
+                        </motion.button>
+                        <motion.button
+                          onClick={() => handleStatusUpdate(row.id, "REJECTED")}
+                          className="text-xs font-semibold text-[#EF4444] hover:underline"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Reject
+                        </motion.button>
+                      </div>
+                    )}
+                  </td>
+                </motion.tr>
+              )
+            })}
           </motion.tbody>
         </table>
       </motion.div>

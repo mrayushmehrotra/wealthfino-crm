@@ -8,7 +8,18 @@ export async function GET() {
     },
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json({ success: true, data: requests });
+
+  const pending = requests.filter(r => r.status === "PENDING").length;
+  const approved = requests.filter(r => r.status === "APPROVED").length;
+  const rejected = requests.filter(r => r.status === "REJECTED").length;
+
+  return NextResponse.json({ 
+    success: true, 
+    data: {
+      stats: { pending, approved, rejected },
+      requests
+    }
+  });
 }
 
 export async function POST(request: Request) {
@@ -26,4 +37,24 @@ export async function POST(request: Request) {
     },
   });
   return NextResponse.json({ success: true, data: leave }, { status: 201 });
+}
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { leaveId, status } = body; // status can be "APPROVED" or "REJECTED"
+
+    if (!leaveId || !status) {
+      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
+    }
+
+    const updatedLeave = await prisma.leaveRequest.update({
+      where: { id: leaveId },
+      data: { status, reviewedAt: new Date() },
+    });
+
+    return NextResponse.json({ success: true, data: updatedLeave });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: "Failed to update leave request" }, { status: 500 });
+  }
 }
