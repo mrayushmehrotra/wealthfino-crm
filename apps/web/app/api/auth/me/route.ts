@@ -21,18 +21,30 @@ export async function GET() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { passwordHash: _pw, ...safeUser } = user;
   
-  // Get today's attendance to determine active status
   let todayAttendance = null;
   if (user.employee) {
     const todayStr = new Date().toISOString().split("T")[0];
+    const today = new Date(todayStr);
+    
     todayAttendance = await prisma.attendance.findUnique({
       where: {
         employeeId_date: {
           employeeId: user.employee.id,
-          date: new Date(todayStr)
+          date: today
         }
       }
     });
+
+    if (!todayAttendance) {
+      todayAttendance = await prisma.attendance.create({
+        data: {
+          employeeId: user.employee.id,
+          date: today,
+          checkIn: new Date(),
+          status: "PRESENT",
+        }
+      });
+    }
   }
 
   return NextResponse.json({ success: true, data: { ...safeUser, todayAttendance } });

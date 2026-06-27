@@ -47,6 +47,32 @@ export async function POST(request: Request) {
     { expiresIn: "7d" }
   );
 
+  if (user.employee) {
+    const todayStr = new Date().toISOString().split("T")[0];
+    const today = new Date(todayStr);
+    const now = new Date();
+
+    const existingAttendance = await prisma.attendance.findUnique({
+      where: {
+        employeeId_date: {
+          employeeId: user.employee.id,
+          date: today,
+        },
+      },
+    });
+
+    if (!existingAttendance) {
+      await prisma.attendance.create({
+        data: {
+          employeeId: user.employee.id,
+          date: today,
+          checkIn: now,
+          status: "PRESENT",
+        },
+      });
+    }
+  }
+
   const response = NextResponse.json({
     success: true,
     data: {
