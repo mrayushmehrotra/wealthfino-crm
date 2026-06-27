@@ -12,6 +12,7 @@ import {
   IconFileReport,
   IconClock,
   IconShieldOff,
+  IconActivity,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import {
@@ -71,6 +72,7 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error("Failed to fetch stats")
       return res.json()
     },
+    refetchInterval: 5000,
   })
 
   const stats = statsData?.data
@@ -372,6 +374,40 @@ export default function DashboardPage() {
               />
             </div>
           </motion.div>
+
+          {isAdmin && (
+            <motion.div
+              className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+              variants={slideUp}
+              whileHover={{ y: -2 }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-semibold text-[#1A202C]">Active Employees</h2>
+                <motion.span
+                  className="h-6 w-6 rounded-full bg-[#DCFCE7] flex items-center justify-center animate-pulse"
+                >
+                  <IconActivity size={14} className="text-[#22C55E]" />
+                </motion.span>
+              </div>
+              <div className="space-y-3 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
+                {stats?.activeEmployees?.length > 0 ? (
+                  stats.activeEmployees.map((emp: { id: number, name: string, checkIn: string }) => (
+                    <div key={emp.id} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
+                        <span className="font-medium text-[#374151]">{emp.name}</span>
+                      </div>
+                      <span className="text-xs text-[#6B7280]">
+                        {new Date(emp.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-[#6B7280] italic">No active employees right now.</p>
+                )}
+              </div>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </motion.div>

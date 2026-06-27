@@ -30,7 +30,12 @@ export async function GET() {
     const totalEmployees = await prisma.employee.count();
 
     const attendanceRecords = await prisma.attendance.findMany({
-      where: { date: new Date(todayStr) }
+      where: { date: new Date(todayStr) },
+      include: {
+        employee: {
+          select: { firstName: true, lastName: true }
+        }
+      }
     });
     const presentToday = attendanceRecords.filter(a => a.status === "PRESENT").length;
     const onLeave = attendanceRecords.filter(a => a.status === "ON_LEAVE").length;
@@ -40,6 +45,14 @@ export async function GET() {
     const completedTasks = await prisma.task.count({ where: { status: "DONE" } });
     const pendingTasks = totalTasks - completedTasks;
     const productivityScore = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    const activeEmployees = attendanceRecords
+      .filter(a => a.status === "PRESENT" && a.checkIn && !a.checkOut)
+      .map(a => ({
+        id: a.employeeId,
+        name: `${a.employee.firstName} ${a.employee.lastName}`,
+        checkIn: a.checkIn
+      }));
 
     return NextResponse.json({
       success: true,
@@ -55,6 +68,7 @@ export async function GET() {
         tasksPending: pendingTasks,
         productivityScore,
         workingHoursToday: null,
+        activeEmployees,
       }
     });
   }
