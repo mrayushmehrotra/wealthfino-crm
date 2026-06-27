@@ -11,8 +11,24 @@ export async function GET() {
   // Fetch real-time data from database
   const totalEmployees = await prisma.employee.count();
   
-  // Since attendance models aren't fully built out yet, 
-  // we will return real counts for employees and zeros/placeholders for the rest.
+  // Real task metrics
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const totalTasks = await prisma.task.count({
+    where: { createdAt: { gte: today } }
+  });
+
+  const completedTasks = await prisma.task.count({
+    where: { 
+      createdAt: { gte: today },
+      status: "DONE" 
+    }
+  });
+
+  const pendingTasks = totalTasks - completedTasks;
+  const productivityScore = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  
   return NextResponse.json({
     success: true,
     data: {
@@ -20,6 +36,10 @@ export async function GET() {
       presentToday: 0,
       absent: 0,
       onLeave: 0,
+      tasksTotal: totalTasks,
+      tasksCompleted: completedTasks,
+      tasksPending: pendingTasks,
+      productivityScore,
     }
   });
 }

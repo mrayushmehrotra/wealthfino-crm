@@ -56,6 +56,10 @@ export default function DashboardPage() {
     presentToday: 0,
     absent: 0,
     onLeave: 0,
+    tasksTotal: 0,
+    tasksCompleted: 0,
+    tasksPending: 0,
+    productivityScore: 0,
   }
 
   const dynamicStats = [
@@ -224,23 +228,23 @@ export default function DashboardPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
             >
-              12
+              {stats.tasksTotal}
             </motion.p>
             <div className="flex gap-6">
               <div>
                 <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Completed</p>
-                <p className="text-xl font-bold text-[#1A202C]">7</p>
+                <p className="text-xl font-bold text-[#1A202C]">{stats.tasksCompleted}</p>
               </div>
               <div>
                 <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Pending</p>
-                <p className="text-xl font-bold text-[#1A202C]">5</p>
+                <p className="text-xl font-bold text-[#1A202C]">{stats.tasksPending}</p>
               </div>
             </div>
             <div className="mt-4 h-1.5 rounded-full bg-[#F3F4F6] overflow-hidden">
               <motion.div
                 className="h-full rounded-full bg-[#22C55E]"
                 variants={progressBar}
-                custom={58}
+                custom={stats.tasksTotal > 0 ? (stats.tasksCompleted / stats.tasksTotal) * 100 : 0}
                 initial="hidden"
                 animate="visible"
               />
@@ -271,7 +275,7 @@ export default function DashboardPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ type: "spring", stiffness: 200, delay: 0.5 }}
               >
-                92%
+                {stats.productivityScore}%
               </motion.p>
               <span className="text-sm font-semibold text-[#22C55E]">+4% this week</span>
             </div>
@@ -279,7 +283,7 @@ export default function DashboardPage() {
               <motion.div
                 className="h-full rounded-full bg-gradient-to-r from-[#22C55E] to-[#16A34A]"
                 variants={progressBar}
-                custom={92}
+                custom={stats.productivityScore}
                 initial="hidden"
                 animate="visible"
               />
