@@ -14,7 +14,7 @@ export async function GET() {
 
   // Fetch full user + employee profile
   const fullUser = await prisma.user.findUnique({
-    where: { id: sessionUser.id },
+    where: { id: sessionUser.userId },
     include: { employee: true },
   });
 
