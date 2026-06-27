@@ -86,7 +86,15 @@ export default function AuthPage() {
           WealthFino CRM
         </div>
         
-     
+        {/* Center Content */}
+        <div className="relative z-20 m-auto flex max-w-lg flex-col items-start justify-center pt-20">
+          <h2 className="text-4xl font-bold tracking-tight text-white mb-4">
+            Next-Generation Employee Management
+          </h2>
+          <p className="text-lg text-zinc-300 leading-relaxed">
+            Streamline your workforce, automate payroll, and track performance with the most powerful CRM built specifically for modern financial teams.
+          </p>
+        </div>
       </div>
 
       {/* Right panel (Form side) */}
