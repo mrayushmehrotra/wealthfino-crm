@@ -12,16 +12,20 @@ export async function POST(request: Request) {
     );
   }
 
-  // Check if admin has allowed this email
-  const allowed = await prisma.allowedEmail.findUnique({
-    where: { email },
-  });
+  const isAdminEmail = email.toLowerCase() === "info@krishnapathak.com";
 
-  if (!allowed) {
-    return NextResponse.json(
-      { success: false, error: { code: "FORBIDDEN", message: "This email has not been authorized by an admin." } },
-      { status: 403 }
-    );
+  // Check if admin has allowed this email (bypass for the master admin)
+  if (!isAdminEmail) {
+    const allowed = await prisma.allowedEmail.findUnique({
+      where: { email },
+    });
+
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: { code: "FORBIDDEN", message: "This email has not been authorized by an admin." } },
+        { status: 403 }
+      );
+    }
   }
 
   // Check if user already exists
@@ -45,6 +49,7 @@ export async function POST(request: Request) {
       data: {
         email,
         passwordHash,
+        role: isAdminEmail ? "ADMIN" : "EMPLOYEE",
         employee: {
           create: {
             firstName,
@@ -55,7 +60,9 @@ export async function POST(request: Request) {
       include: { employee: true },
     });
 
-    await tx.allowedEmail.delete({ where: { email } });
+    if (!isAdminEmail) {
+      await tx.allowedEmail.delete({ where: { email } });
+    }
 
     return newUser;
   });

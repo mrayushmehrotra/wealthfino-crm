@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string; action: string }> }
 ) {
+  const authResponse = await requireAdmin();
+  if (authResponse instanceof Response) return authResponse;
+
   const { id, action } = await params;
 
   if (!["approve", "reject"].includes(action)) {

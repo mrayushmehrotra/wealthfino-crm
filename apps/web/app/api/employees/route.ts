@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 
 export async function GET() {
   const employees = await prisma.employee.findMany({
@@ -10,6 +11,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authResponse = await requireAdmin();
+  if (authResponse instanceof Response) return authResponse;
+
   const body = await request.json();
   const { email, password, firstName, lastName, department, designation, phone } = body;
 
