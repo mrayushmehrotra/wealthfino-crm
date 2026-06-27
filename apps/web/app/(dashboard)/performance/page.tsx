@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import {
   fadeInUp,
   staggerContainer,
@@ -9,7 +10,6 @@ import {
   progressBar,
 } from "@/lib/animation-variants"
 
-const PERFORMANCE: any[] = []
 
 function ScoreBar({ score }: { score: number }) {
   const color = score >= 90 ? "#22C55E" : score >= 75 ? "#F59E0B" : "#EF4444"
@@ -39,6 +39,17 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 export default function PerformancePage() {
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ["PERFORMANCE"],
+    queryFn: async () => {
+      const res = await fetch("/api/performance")
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+  })
+  
+  const PERFORMANCE: any[] = queryData?.data || []
+
   return (
     <motion.div
       className="max-w-7xl mx-auto space-y-6"

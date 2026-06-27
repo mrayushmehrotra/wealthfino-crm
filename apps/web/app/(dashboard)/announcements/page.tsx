@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import { IconPlus, IconSpeakerphone } from "@tabler/icons-react"
 import {
   fadeInUp,
@@ -9,9 +10,19 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const ANNOUNCEMENTS: any[] = []
 
 export default function AnnouncementsPage() {
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ["ANNOUNCEMENTS"],
+    queryFn: async () => {
+      const res = await fetch("/api/announcements")
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+  })
+  
+  const ANNOUNCEMENTS: any[] = queryData?.data || []
+
   return (
     <motion.div
       className="max-w-7xl mx-auto space-y-6"

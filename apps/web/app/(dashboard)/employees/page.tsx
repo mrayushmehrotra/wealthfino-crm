@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import { IconUsers, IconPlus, IconSearch } from "@tabler/icons-react"
 import {
   fadeInUp,
@@ -9,7 +10,6 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const EMPLOYEES: any[] = []
 
 const STATUS_STYLES: Record<string, string> = {
   Present: "bg-[#DCFCE7] text-[#22C55E]",
@@ -18,6 +18,17 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 export default function EmployeesPage() {
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ["EMPLOYEES"],
+    queryFn: async () => {
+      const res = await fetch("/api/employees")
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+  })
+  
+  const EMPLOYEES: any[] = queryData?.data || []
+
   return (
     <motion.div
       className="max-w-7xl mx-auto space-y-6"

@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import { IconPlus } from "@tabler/icons-react"
 import {
   fadeInUp,
@@ -9,7 +10,6 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const LEAVES: any[] = []
 
 const STATUS_STYLES: Record<string, string> = {
   Pending: "bg-[#FEF3C7] text-[#F59E0B]",
@@ -18,6 +18,17 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 export default function LeaveManagementPage() {
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ["LEAVES"],
+    queryFn: async () => {
+      const res = await fetch("/api/leave")
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+  })
+  
+  const LEAVES: any[] = queryData?.data || []
+
   return (
     <motion.div
       className="max-w-7xl mx-auto space-y-6"

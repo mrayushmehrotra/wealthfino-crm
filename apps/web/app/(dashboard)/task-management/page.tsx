@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import { IconPlus } from "@tabler/icons-react"
 import {
   fadeInUp,
@@ -9,7 +10,6 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const TASKS: any[] = []
 
 const STATUS_STYLES: Record<string, string> = {
   "In Progress": "bg-[#EFF6FF] text-[#3B82F6]",
@@ -24,6 +24,17 @@ const PRIORITY_STYLES: Record<string, string> = {
 }
 
 export default function TaskManagementPage() {
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ["TASKS"],
+    queryFn: async () => {
+      const res = await fetch("/api/tasks")
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+  })
+  
+  const TASKS: any[] = queryData?.data || []
+
   return (
     <motion.div
       className="max-w-7xl mx-auto space-y-6"

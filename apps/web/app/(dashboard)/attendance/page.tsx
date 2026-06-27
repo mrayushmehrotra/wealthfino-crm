@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import { IconCalendarCheck, IconChevronLeft, IconChevronRight } from "@tabler/icons-react"
 import {
   fadeInUp,
@@ -9,7 +10,6 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const ATTENDANCE: any[] = []
 
 const STATUS_STYLES: Record<string, string> = {
   Present: "bg-[#DCFCE7] text-[#22C55E]",
@@ -18,6 +18,17 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 export default function AttendancePage() {
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ["ATTENDANCE"],
+    queryFn: async () => {
+      const res = await fetch("/api/attendance")
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+  })
+  
+  const ATTENDANCE: any[] = queryData?.data || []
+
   const today = new Date().toLocaleDateString("en-GB", {
     weekday: "long",
     day: "numeric",

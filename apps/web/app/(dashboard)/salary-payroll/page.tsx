@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import {
   fadeInUp,
   staggerContainer,
@@ -8,12 +9,22 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const PAYROLL: any[] = []
 
 const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`
 const totalPayroll = PAYROLL.reduce((s, r) => s + r.net, 0)
 
 export default function SalaryPayrollPage() {
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ["PAYROLL"],
+    queryFn: async () => {
+      const res = await fetch("/api/payroll")
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+  })
+  
+  const PAYROLL: any[] = queryData?.data || []
+
   return (
     <motion.div
       className="max-w-7xl mx-auto space-y-6"

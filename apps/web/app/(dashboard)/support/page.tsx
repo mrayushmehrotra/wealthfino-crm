@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import { IconMail, IconPhone, IconBrandSlack } from "@tabler/icons-react"
 import {
   fadeInUp,
@@ -9,9 +10,19 @@ import {
   staggerFast,
 } from "@/lib/animation-variants"
 
-const FAQS: any[] = []
 
 export default function SupportPage() {
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ["FAQS"],
+    queryFn: async () => {
+      const res = await fetch("/api/support")
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+  })
+  
+  const FAQS: any[] = queryData?.data || []
+
   return (
     <motion.div
       className="max-w-3xl mx-auto space-y-6"

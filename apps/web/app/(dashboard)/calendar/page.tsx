@@ -10,9 +10,19 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ]
 
-const EVENTS: any[] = []
 
 export default function CalendarPage() {
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ["EVENTS"],
+    queryFn: async () => {
+      const res = await fetch("/api/calendar")
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+  })
+  
+  const EVENTS: any[] = queryData?.data || []
+
   const now = new Date()
   const [month, setMonth] = useState(now.getMonth())
   const [year, setYear] = useState(now.getFullYear())
