@@ -44,7 +44,7 @@ export function Topbar() {
   const pathname = usePathname()
   const title = PAGE_TITLES[pathname] ?? "Dashboard"
 
-  const { data: queryData } = useQuery({
+  const { data: queryData, refetch } = useQuery({
     queryKey: ["sidebarProfile"],
     queryFn: async () => {
       const res = await fetch("/api/auth/me")
@@ -57,6 +57,41 @@ export function Topbar() {
   const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : (user ? "Admin" : "Loading...")
   const initials = user?.employee ? `${user.employee.firstName[0]}${user.employee.lastName[0]}`.toUpperCase() : (user ? "AD" : "")
   const roleDisplay = user?.role || "..."
+
+  const todayAttendance = user?.todayAttendance
+  const isOnline = todayAttendance && todayAttendance.checkIn && !todayAttendance.checkOut
+
+  const handleToggleStatus = async () => {
+    if (!user?.employee) return;
+    
+    const now = new Date().toISOString()
+    const payload: any = {
+      employeeId: user.employee.id,
+      date: new Date().toISOString().split("T")[0],
+      status: "PRESENT"
+    }
+
+    if (isOnline) {
+      // Go offline
+      payload.checkOut = now
+    } else {
+      // Go online
+      payload.checkIn = now
+      // Reset checkout if they are logging back in
+      payload.checkOut = null
+    }
+
+    try {
+      await fetch("/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      refetch()
+    } catch (err) {
+      console.error("Failed to toggle status", err)
+    }
+  }
 
   return (
     <motion.header
@@ -87,6 +122,22 @@ export function Topbar() {
       </motion.div>
 
       <div className="ml-auto flex items-center gap-2">
+        {user?.employee && (
+          <motion.button
+            onClick={handleToggleStatus}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors mr-2 ${
+              isOnline 
+                ? "bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30" 
+                : "bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB]"
+            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-[#22C55E] animate-pulse" : "bg-[#9CA3AF]"}`} />
+            {isOnline ? "Online" : "Offline"}
+          </motion.button>
+        )}
+
         <motion.button
           className="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F5F7FA] transition-colors"
           variants={notificationVariants}

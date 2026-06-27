@@ -20,5 +20,19 @@ export async function GET() {
   // Remove passwordHash
   const { passwordHash, ...safeUser } = user;
   
-  return NextResponse.json({ success: true, data: safeUser });
+  // Get today's attendance to determine active status
+  let todayAttendance = null;
+  if (user.employee) {
+    const todayStr = new Date().toISOString().split("T")[0];
+    todayAttendance = await prisma.attendance.findUnique({
+      where: {
+        employeeId_date: {
+          employeeId: user.employee.id,
+          date: new Date(todayStr)
+        }
+      }
+    });
+  }
+
+  return NextResponse.json({ success: true, data: { ...safeUser, todayAttendance } });
 }
