@@ -9,20 +9,24 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import logoSrc from "@/app/logo.png"
+import { IconEye } from "@tabler/icons-react"
 
 export default function AuthPage() {
   const router = useRouter()
   const [mode, setMode] = useState<"login" | "signup">("login")
+  const [passwordMode, setPasswordMode] = useState<"text" | "password">("password")
   
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
   const [error, setError] = useState("")
+  const [pendingMessage, setPendingMessage] = useState("")
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setPendingMessage("")
     setLoading(true)
 
     try {
@@ -39,6 +43,11 @@ export default function AuthPage() {
 
       if (!res.ok) {
         throw new Error(data.error?.message || "Something went wrong")
+      }
+
+      if (data.pending) {
+        setPendingMessage(data.message)
+        return
       }
 
       router.push("/dashboard")
@@ -128,6 +137,12 @@ export default function AuthPage() {
                   </div>
                 )}
 
+                {pendingMessage && (
+                  <div className="p-3 bg-green-950/50 border border-green-900 rounded-lg text-green-400 text-sm text-center">
+                    {pendingMessage}
+                  </div>
+                )}
+
                 {mode === "signup" && (
                   <div className="space-y-2">
                     <Label className="sr-only text-zinc-300" htmlFor="name">Full Name</Label>
@@ -164,16 +179,20 @@ export default function AuthPage() {
                 
                 <div className="space-y-2">
                   <Label className="sr-only text-zinc-300" htmlFor="password">Password</Label>
+                  <div className="flex items-center ">
+
                   <Input
                     id="password"
                     placeholder="Password"
-                    type="password"
+                    type={passwordMode}
                     autoComplete={mode === "login" ? "current-password" : "new-password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="bg-zinc-950 border-zinc-800 text-white placeholder:text-zinc-500 focus-visible:ring-zinc-700 h-10"
                   />
+                  <IconEye onClick={() => setPasswordMode(passwordMode === "password" ? "text" : "password")} />
+                </div>
                 </div>
 
                 <Button disabled={loading} className="w-full bg-white text-black hover:bg-zinc-200 h-10 font-medium">
