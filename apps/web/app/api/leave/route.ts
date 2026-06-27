@@ -1,8 +1,17 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { getUser } from "@/lib/auth";
 
 export async function GET() {
+  const user = await getUser();
+  if (!user) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  const queryWhere = user.role === "ADMIN" ? {} : { employee: { userId: user.id } };
+
   const requests = await prisma.leaveRequest.findMany({
+    where: queryWhere,
     include: {
       employee: { select: { firstName: true, lastName: true } },
     },
@@ -41,6 +50,11 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const user = await getUser();
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { leaveId, status } = body; // status can be "APPROVED" or "REJECTED"
 

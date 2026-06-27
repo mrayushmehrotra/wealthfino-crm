@@ -18,6 +18,16 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 export default function LeaveManagementPage() {
+  const { data: userProfile } = useQuery({
+    queryKey: ["sidebarProfile"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me")
+      return res.json()
+    },
+  })
+  
+  const isAdmin = userProfile?.data?.role === "ADMIN"
+
   const { data: queryData, isLoading, refetch } = useQuery({
     queryKey: ["LEAVES"],
     queryFn: async () => {
@@ -136,7 +146,7 @@ export default function LeaveManagementPage() {
                     </span>
                   </td>
                   <td className="px-5 py-4">
-                    {row.status === "PENDING" && (
+                    {isAdmin && row.status === "PENDING" ? (
                       <div className="flex gap-2">
                         <motion.button
                           onClick={() => handleStatusUpdate(row.id, "APPROVED")}
@@ -155,6 +165,8 @@ export default function LeaveManagementPage() {
                           Reject
                         </motion.button>
                       </div>
+                    ) : (
+                      <span className="text-xs text-[#9CA3AF]">—</span>
                     )}
                   </td>
                 </motion.tr>
