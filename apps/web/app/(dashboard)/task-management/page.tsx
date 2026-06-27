@@ -113,11 +113,11 @@ export default function TaskManagementPage() {
                 New Task
               </motion.button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Assign New Task</DialogTitle>
+            <DialogContent className="sm:max-w-[425px] bg-white border border-[#E5E7EB] p-0 overflow-hidden">
+              <DialogHeader className="p-5 border-b border-[#E5E7EB]">
+                <DialogTitle className="text-lg font-bold text-[#1A202C]">Assign New Task</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleCreateTask} className="space-y-4 pt-4">
+              <form onSubmit={handleCreateTask} className="space-y-4 p-5">
                 <div>
                   <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
                     Task Title
