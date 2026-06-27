@@ -3,12 +3,20 @@
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
 import { IconPlus } from "@tabler/icons-react"
+import { useState } from "react"
 import {
   fadeInUp,
   staggerContainer,
   slideUp,
   staggerFast,
 } from "@/lib/animation-variants"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@workspace/ui/components/dialog"
 
 
 const STATUS_STYLES: Record<string, string> = {
@@ -18,6 +26,14 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 export default function LeaveManagementPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [leaveForm, setLeaveForm] = useState({
+    type: "Sick Leave",
+    fromDate: "",
+    toDate: "",
+    days: 1,
+    reason: ""
+  })
   const { data: userProfile } = useQuery({
     queryKey: ["sidebarProfile"],
     queryFn: async () => {
@@ -53,6 +69,27 @@ export default function LeaveManagementPage() {
     }
   }
 
+  const handleApplyLeave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!userProfile?.data?.employee?.id) return
+
+    try {
+      await fetch("/api/leave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employeeId: userProfile.data.employee.id,
+          ...leaveForm
+        })
+      })
+      setIsModalOpen(false)
+      setLeaveForm({ type: "Sick Leave", fromDate: "", toDate: "", days: 1, reason: "" })
+      refetch()
+    } catch (err) {
+      console.error("Failed to apply leave", err)
+    }
+  }
+
   return (
     <motion.div
       className="max-w-7xl mx-auto space-y-6"
@@ -65,14 +102,92 @@ export default function LeaveManagementPage() {
           <h1 className="text-2xl font-bold text-[#1A202C]">Leave Management</h1>
           <p className="text-sm text-[#6B7280] mt-1">Review and manage leave requests</p>
         </div>
-        <motion.button
-          className="flex items-center gap-2 bg-[#22C55E] hover:bg-[#16A34A] text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-        >
-          <IconPlus size={16} />
-          Apply Leave
-        </motion.button>
+        {!isAdmin && (
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger asChild>
+              <motion.button
+                className="flex items-center gap-2 bg-[#22C55E] hover:bg-[#16A34A] text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <IconPlus size={16} />
+                Apply Leave
+              </motion.button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px] bg-white border border-[#E5E7EB] p-0 overflow-hidden">
+              <DialogHeader className="p-5 border-b border-[#E5E7EB]">
+                <DialogTitle className="text-lg font-bold text-[#1A202C]">Apply for Leave</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleApplyLeave} className="p-5 space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-[#374151]">Leave Type</label>
+                  <select 
+                    value={leaveForm.type}
+                    onChange={(e) => setLeaveForm(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
+                    required
+                  >
+                    <option value="Sick Leave">Sick Leave</option>
+                    <option value="Casual Leave">Casual Leave</option>
+                    <option value="Paid Leave">Paid Leave</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-[#374151]">From Date</label>
+                    <input 
+                      type="date"
+                      value={leaveForm.fromDate}
+                      onChange={(e) => setLeaveForm(prev => ({ ...prev, fromDate: e.target.value }))}
+                      className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-semibold text-[#374151]">To Date</label>
+                    <input 
+                      type="date"
+                      value={leaveForm.toDate}
+                      onChange={(e) => setLeaveForm(prev => ({ ...prev, toDate: e.target.value }))}
+                      className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-[#374151]">Total Days</label>
+                  <input 
+                    type="number"
+                    min="1"
+                    value={leaveForm.days}
+                    onChange={(e) => setLeaveForm(prev => ({ ...prev, days: Number(e.target.value) }))}
+                    className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-[#374151]">Reason</label>
+                  <textarea 
+                    rows={3}
+                    value={leaveForm.reason}
+                    onChange={(e) => setLeaveForm(prev => ({ ...prev, reason: e.target.value }))}
+                    className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E] resize-none"
+                    placeholder="Briefly explain the reason for your leave"
+                    required
+                  />
+                </div>
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold py-2.5 rounded-lg transition-colors"
+                  >
+                    Submit Request
+                  </button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </motion.div>
 
       <motion.div className="grid grid-cols-3 gap-4" variants={staggerContainer}>
