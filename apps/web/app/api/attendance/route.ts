@@ -5,15 +5,37 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date") ?? new Date().toISOString().split("T")[0];
 
-  const records = await prisma.attendance.findMany({
-    where: { date: new Date(date) },
-    include: {
-      employee: { select: { firstName: true, lastName: true, department: true } },
-    },
-    orderBy: { employee: { firstName: "asc" } },
+  // Fetch all employees
+  const employees = await prisma.employee.findMany({
+    select: { id: true, firstName: true, lastName: true, department: true }
   });
 
-  return NextResponse.json({ success: true, data: records });
+  // Fetch attendance for today
+  const attendanceRecords = await prisma.attendance.findMany({
+    where: { date: new Date(date) }
+  });
+
+  // Map attendance to employees
+  const records = employees.map(emp => {
+    const record = attendanceRecords.find(a => a.employeeId === emp.id);
+    return {
+      employee: emp,
+      attendance: record || null,
+      status: record?.status || "ABSENT"
+    };
+  });
+
+  const present = records.filter(r => r.status === "PRESENT").length;
+  const onLeave = records.filter(r => r.status === "ON_LEAVE").length;
+  const absent = records.length - present - onLeave;
+
+  return NextResponse.json({ 
+    success: true, 
+    data: {
+      stats: { present, absent, onLeave, total: records.length },
+      records
+    } 
+  });
 }
 
 export async function POST(request: Request) {

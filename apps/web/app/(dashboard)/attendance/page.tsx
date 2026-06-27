@@ -22,12 +22,13 @@ export default function AttendancePage() {
     queryKey: ["ATTENDANCE"],
     queryFn: async () => {
       const res = await fetch("/api/attendance")
-      if (!res.ok) return { data: [] }
+      if (!res.ok) throw new Error("Failed to fetch")
       return res.json()
     },
   })
   
-  const ATTENDANCE: any[] = queryData?.data || []
+  const stats = queryData?.data?.stats || { present: 0, absent: 0, onLeave: 0 }
+  const ATTENDANCE = queryData?.data?.records || []
 
   const today = new Date().toLocaleDateString("en-GB", {
     weekday: "long",
@@ -68,9 +69,9 @@ export default function AttendancePage() {
 
       <motion.div className="grid grid-cols-3 gap-4" variants={staggerContainer}>
         {[
-          { label: "Present", value: 9, color: "text-[#22C55E]", bg: "bg-[#DCFCE7]" },
-          { label: "Absent", value: 1, color: "text-[#EF4444]", bg: "bg-[#FEE2E2]" },
-          { label: "On Leave", value: 2, color: "text-[#F59E0B]", bg: "bg-[#FEF3C7]" },
+          { label: "Present", value: stats.present, color: "text-[#22C55E]", bg: "bg-[#DCFCE7]" },
+          { label: "Absent", value: stats.absent, color: "text-[#EF4444]", bg: "bg-[#FEE2E2]" },
+          { label: "On Leave", value: stats.onLeave, color: "text-[#F59E0B]", bg: "bg-[#FEF3C7]" },
         ].map(({ label, value, color, bg }) => (
           <motion.div
             key={label}
@@ -116,25 +117,46 @@ export default function AttendancePage() {
             </tr>
           </thead>
           <motion.tbody className="divide-y divide-[#F3F4F6]" variants={staggerFast}>
-            {ATTENDANCE.map((row) => (
-              <motion.tr
-                key={row.name}
-                variants={fadeInUp}
-                className="hover:bg-[#F9FAFB] transition-colors"
-              >
-                <td className="px-5 py-4 font-medium text-[#1A202C]">{row.name}</td>
-                <td className="px-5 py-4 text-[#6B7280]">{row.checkIn}</td>
-                <td className="px-5 py-4 text-[#6B7280]">{row.checkOut}</td>
-                <td className="px-5 py-4 text-[#6B7280]">{row.hours}</td>
-                <td className="px-5 py-4">
-                  <span
-                    className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[row.status]}`}
-                  >
-                    {row.status}
-                  </span>
-                </td>
-              </motion.tr>
-            ))}
+            {ATTENDANCE.map((row: any) => {
+              const empName = `${row.employee.firstName} ${row.employee.lastName}`
+              const checkInTime = row.attendance?.checkIn ? new Date(row.attendance.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--:--"
+              const checkOutTime = row.attendance?.checkOut ? new Date(row.attendance.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--:--"
+              
+              let hoursStr = "0h 0m"
+              if (row.attendance?.checkIn && row.attendance?.checkOut) {
+                const diffMs = new Date(row.attendance.checkOut).getTime() - new Date(row.attendance.checkIn).getTime()
+                const diffHrs = Math.floor(diffMs / 3600000)
+                const diffMins = Math.floor((diffMs % 3600000) / 60000)
+                hoursStr = `${diffHrs}h ${diffMins}m`
+              } else if (row.attendance?.checkIn) {
+                const diffMs = new Date().getTime() - new Date(row.attendance.checkIn).getTime()
+                const diffHrs = Math.floor(diffMs / 3600000)
+                const diffMins = Math.floor((diffMs % 3600000) / 60000)
+                hoursStr = `${diffHrs}h ${diffMins}m (Active)`
+              }
+
+              const statusFormatted = row.status === "PRESENT" ? "Present" : row.status === "ABSENT" ? "Absent" : "On Leave"
+
+              return (
+                <motion.tr
+                  key={row.employee.id}
+                  variants={fadeInUp}
+                  className="hover:bg-[#F9FAFB] transition-colors"
+                >
+                  <td className="px-5 py-4 font-medium text-[#1A202C]">{empName}</td>
+                  <td className="px-5 py-4 text-[#6B7280]">{checkInTime}</td>
+                  <td className="px-5 py-4 text-[#6B7280]">{checkOutTime}</td>
+                  <td className="px-5 py-4 text-[#6B7280]">{hoursStr}</td>
+                  <td className="px-5 py-4">
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[statusFormatted] || "bg-[#F3F4F6] text-[#6B7280]"}`}
+                    >
+                      {statusFormatted}
+                    </span>
+                  </td>
+                </motion.tr>
+              )
+            })}
           </motion.tbody>
         </table>
       </motion.div>
