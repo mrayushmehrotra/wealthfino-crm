@@ -28,7 +28,7 @@ const STATUS_STYLES: Record<string, string> = {
 export default function LeaveManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [leaveForm, setLeaveForm] = useState({
-    type: "Sick Leave",
+    type: "SICK",
     fromDate: "",
     toDate: "",
     days: 1,
@@ -83,7 +83,7 @@ export default function LeaveManagementPage() {
         })
       })
       setIsModalOpen(false)
-      setLeaveForm({ type: "Sick Leave", fromDate: "", toDate: "", days: 1, reason: "" })
+      setLeaveForm({ type: "SICK", fromDate: "", toDate: "", days: 1, reason: "" })
       refetch()
     } catch (err) {
       console.error("Failed to apply leave", err)
@@ -127,9 +127,10 @@ export default function LeaveManagementPage() {
                     className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
                     required
                   >
-                    <option value="Sick Leave">Sick Leave</option>
-                    <option value="Casual Leave">Casual Leave</option>
-                    <option value="Paid Leave">Paid Leave</option>
+                    <option value="SICK">Sick Leave</option>
+                    <option value="CASUAL">Casual Leave</option>
+                    <option value="ANNUAL">Annual Leave</option>
+                    <option value="UNPAID">Unpaid Leave</option>
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -240,6 +241,14 @@ export default function LeaveManagementPage() {
               const fromStr = new Date(row.fromDate).toLocaleDateString()
               const toStr = new Date(row.toDate).toLocaleDateString()
               const statusDisplay = row.status === "PENDING" ? "Pending" : row.status === "APPROVED" ? "Approved" : "Rejected"
+              
+              const formatType = (t: string) => {
+                if (t === "SICK") return "Sick Leave"
+                if (t === "CASUAL") return "Casual Leave"
+                if (t === "ANNUAL") return "Annual Leave"
+                if (t === "UNPAID") return "Unpaid Leave"
+                return t
+              }
 
               return (
                 <motion.tr
@@ -248,7 +257,7 @@ export default function LeaveManagementPage() {
                   className="hover:bg-[#F9FAFB] transition-colors"
                 >
                   <td className="px-5 py-4 font-medium text-[#1A202C]">{empName}</td>
-                  <td className="px-5 py-4 text-[#6B7280]">{row.type}</td>
+                  <td className="px-5 py-4 text-[#6B7280]">{formatType(row.type)}</td>
                   <td className="px-5 py-4 text-[#6B7280]">{fromStr}</td>
                   <td className="px-5 py-4 text-[#6B7280]">{toStr}</td>
                   <td className="px-5 py-4 text-[#6B7280]">{row.days}</td>
