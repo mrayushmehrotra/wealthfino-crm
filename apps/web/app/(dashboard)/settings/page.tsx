@@ -1,9 +1,21 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
 
 export default function SettingsPage() {
+  const { data: queryData, isLoading } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me")
+      if (!res.ok) throw new Error("Failed to fetch profile")
+      return res.json()
+    },
+  })
+
+  const user = queryData?.data || {}
+  const fullName = user.employee ? `${user.employee.firstName} ${user.employee.lastName}` : "Pending Setup"
   return (
     <motion.div
       className="max-w-3xl mx-auto space-y-6"
@@ -20,9 +32,9 @@ export default function SettingsPage() {
         {
           title: "Profile",
           fields: [
-            { label: "Full Name", placeholder: "Krishna Pathak", type: "text" },
-            { label: "Email", placeholder: "krishna@wealthfino.com", type: "email" },
-            { label: "Role", placeholder: "Admin", type: "text" },
+            { label: "Full Name", placeholder: fullName, type: "text" },
+            { label: "Email", placeholder: user.email || "Loading...", type: "email" },
+            { label: "Role", placeholder: user.role || "Loading...", type: "text" },
           ],
         },
         {
