@@ -97,22 +97,27 @@ export default function EmployeesPage() {
                         whileHover={{ scale: 1.15 }}
                       >
                         <span className="text-xs font-bold text-[#22C55E]">
-                          {emp.name.split(" ").map((n) => n[0]).join("")}
+                          {emp.firstName?.[0] || ""}{emp.lastName?.[0] || ""}
                         </span>
                       </motion.div>
-                      <span className="font-medium text-[#1A202C]">{emp.name}</span>
+                      <span className="font-medium text-[#1A202C]">{emp.firstName} {emp.lastName}</span>
                     </div>
                   </td>
-                  <td className="px-5 py-4 text-[#6B7280]">{emp.role}</td>
-                  <td className="px-5 py-4 text-[#6B7280]">{emp.dept}</td>
+                  <td className="px-5 py-4 text-[#6B7280]">
+                    <div className="flex flex-col">
+                      <span className="text-[#1A202C] font-medium">{emp.designation || "N/A"}</span>
+                      <span className="text-[10px] uppercase tracking-wider">{emp.user?.role || "EMPLOYEE"}</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-4 text-[#6B7280]">{emp.department || "N/A"}</td>
                   <td className="px-5 py-4">
                     <span
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[emp.status]}`}
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES["Present"]}`}
                     >
-                      {emp.status}
+                      Active
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-[#6B7280]">{emp.joined}</td>
+                  <td className="px-5 py-4 text-[#6B7280]">{emp.joinedAt ? new Date(emp.joinedAt).toLocaleDateString() : "N/A"}</td>
                   <td className="px-5 py-4">
                     <motion.button
                       className="text-xs font-semibold text-[#22C55E] hover:underline"
