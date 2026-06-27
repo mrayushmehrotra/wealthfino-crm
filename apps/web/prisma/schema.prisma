@@ -9,6 +9,14 @@ datasource db {
 
 // ─── Users & Auth ─────────────────────────────────────────────────────────────
 
+model AllowedEmail {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("allowed_emails")
+}
+
 model User {
   id           Int       @id @default(autoincrement())
   email        String    @unique

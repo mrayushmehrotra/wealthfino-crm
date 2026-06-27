@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
@@ -10,18 +11,41 @@ import { Label } from "@workspace/ui/components/label"
 import logoSrc from "@/app/logo.png"
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<"login" | "signup">("signup")
+  const router = useRouter()
+  const [mode, setMode] = useState<"login" | "signup">("login")
   
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (mode === "login") {
-      console.log("Login:", { email, password })
-    } else {
-      console.log("Signup:", { name, email, password })
+    setError("")
+    setLoading(true)
+
+    try {
+      const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/signup"
+      const body = mode === "login" ? { email, password } : { name, email, password }
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error?.message || "Something went wrong")
+      }
+
+      router.push("/dashboard")
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -90,6 +114,12 @@ export default function AuthPage() {
             >
               <form onSubmit={handleSubmit} className="space-y-4">
                 
+                {error && (
+                  <div className="p-3 bg-red-950/50 border border-red-900 rounded-lg text-red-400 text-sm text-center">
+                    {error}
+                  </div>
+                )}
+
                 {mode === "signup" && (
                   <div className="space-y-2">
                     <Label className="sr-only text-zinc-300" htmlFor="name">Full Name</Label>
@@ -138,8 +168,8 @@ export default function AuthPage() {
                   />
                 </div>
 
-                <Button className="w-full bg-white text-black hover:bg-zinc-200 h-10 font-medium">
-                  {mode === "login" ? "Sign In with Email" : "Sign In with Email"}
+                <Button disabled={loading} className="w-full bg-white text-black hover:bg-zinc-200 h-10 font-medium">
+                  {loading ? "Please wait..." : (mode === "login" ? "Sign In with Email" : "Sign Up with Email")}
                 </Button>
               </form>
 
