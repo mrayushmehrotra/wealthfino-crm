@@ -162,6 +162,11 @@ export default function LeaveManagementPage() {
                       className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
                       required
                     />
+                    {leaveForm.fromDate && (
+                      <p className="text-[10px] text-[#6B7280]">
+                        {new Date(leaveForm.fromDate).toLocaleDateString('en-GB', { dateStyle: 'medium' })}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-[#374151]">To Date</label>
@@ -172,6 +177,11 @@ export default function LeaveManagementPage() {
                       className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
                       required
                     />
+                    {leaveForm.toDate && (
+                      <p className="text-[10px] text-[#6B7280]">
+                        {new Date(leaveForm.toDate).toLocaleDateString('en-GB', { dateStyle: 'medium' })}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="space-y-1.5">
