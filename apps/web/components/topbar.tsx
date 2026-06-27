@@ -44,7 +44,7 @@ export function Topbar() {
   const pathname = usePathname()
   const title = PAGE_TITLES[pathname] ?? "Dashboard"
 
-  const { data: queryData, refetch } = useQuery({
+  const { data: queryData, isPending, refetch } = useQuery({
     queryKey: ["sidebarProfile"],
     queryFn: async () => {
       const res = await fetch("/api/auth/me")
@@ -54,9 +54,9 @@ export function Topbar() {
   })
 
   const user = queryData?.data
-  const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : (user ? "Admin" : "Loading...")
-  const initials = user?.employee ? `${user.employee.firstName[0]}${user.employee.lastName[0]}`.toUpperCase() : (user ? "AD" : "")
-  const roleDisplay = user?.role || "..."
+  const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : (isPending ? "Loading..." : "Admin")
+  const initials = user?.employee ? `${user.employee.firstName[0]}${user.employee.lastName[0]}`.toUpperCase() : (isPending ? ".." : "AD")
+  const roleDisplay = user?.role || (isPending ? "..." : "admin")
 
   const todayAttendance = user?.todayAttendance
   const isOnline = todayAttendance && todayAttendance.checkIn && !todayAttendance.checkOut

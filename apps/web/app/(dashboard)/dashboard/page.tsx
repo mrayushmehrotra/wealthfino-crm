@@ -19,7 +19,6 @@ import {
   slideUp,
   progressBar,
 } from "@/lib/animation-variants"
-
 import { useQuery } from "@tanstack/react-query"
 
 const QUICK_ACTIONS = [
@@ -32,6 +31,13 @@ const QUICK_ACTIONS = [
   { label: "Calendar", href: "/calendar", icon: IconCalendarEvent, iconBg: "bg-[#DCFCE7]", iconColor: "text-[#22C55E]" },
   { label: "Approvals", href: "/leave-management", icon: IconTicket, iconBg: "bg-[#FEF3C7]", iconColor: "text-[#F59E0B]" },
 ]
+
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return "Good morning"
+  if (hour < 17) return "Good afternoon"
+  return "Good evening"
+}
 
 function formatDate() {
   return new Date().toLocaleDateString("en-GB", {
@@ -51,21 +57,15 @@ export default function DashboardPage() {
     },
   })
 
-  const stats = statsData?.data || {
-    totalEmployees: 0,
-    presentToday: 0,
-    absent: 0,
-    onLeave: 0,
-    tasksTotal: 0,
-    tasksCompleted: 0,
-    tasksPending: 0,
-    productivityScore: 0,
-  }
+  const stats = statsData?.data
+  const isAdmin = stats?.role === "ADMIN"
+  const firstName = stats?.firstName ?? ""
 
-  const dynamicStats = [
+  // Admin top-row stat cards
+  const adminStats = [
     {
       label: "Total Employees",
-      value: stats.totalEmployees.toString(),
+      value: stats?.totalEmployees?.toString() ?? "—",
       badge: "Real-time",
       badgeColor: "bg-[#DCFCE7] text-[#22C55E]",
       icon: IconUsers,
@@ -74,8 +74,8 @@ export default function DashboardPage() {
     },
     {
       label: "Present Today",
-      value: stats.presentToday.toString(),
-      badge: "Tracking Pending",
+      value: stats?.presentToday?.toString() ?? "—",
+      badge: "Today",
       badgeColor: "bg-[#DCFCE7] text-[#22C55E]",
       icon: IconCalendarCheck,
       iconBg: "bg-[#DCFCE7]",
@@ -83,8 +83,8 @@ export default function DashboardPage() {
     },
     {
       label: "Absent",
-      value: stats.absent.toString(),
-      badge: "Tracking Pending",
+      value: stats?.absent?.toString() ?? "—",
+      badge: "Today",
       badgeColor: "bg-[#FEE2E2] text-[#EF4444]",
       icon: IconUserX,
       iconBg: "bg-[#FEE2E2]",
@@ -92,14 +92,56 @@ export default function DashboardPage() {
     },
     {
       label: "On Leave",
-      value: stats.onLeave.toString(),
-      badge: "Tracking Pending",
+      value: stats?.onLeave?.toString() ?? "—",
+      badge: "Today",
       badgeColor: "bg-[#FEF3C7] text-[#F59E0B]",
       icon: IconBeach,
       iconBg: "bg-[#FEF3C7]",
       iconColor: "text-[#F59E0B]",
     },
   ]
+
+  // Employee top-row stat cards
+  const employeeStats = [
+    {
+      label: "Working Hours Today",
+      value: stats?.workingHoursToday != null ? `${stats.workingHoursToday}h` : "Not clocked in",
+      badge: "Live",
+      badgeColor: "bg-[#EFF6FF] text-[#3B82F6]",
+      icon: IconClock,
+      iconBg: "bg-[#EFF6FF]",
+      iconColor: "text-[#3B82F6]",
+    },
+    {
+      label: "Tasks Assigned",
+      value: stats?.tasksTotal?.toString() ?? "0",
+      badge: "Total",
+      badgeColor: "bg-[#F5F3FF] text-[#8B5CF6]",
+      icon: IconChecklist,
+      iconBg: "bg-[#F5F3FF]",
+      iconColor: "text-[#8B5CF6]",
+    },
+    {
+      label: "Tasks Completed",
+      value: stats?.tasksCompleted?.toString() ?? "0",
+      badge: "Done ✓",
+      badgeColor: "bg-[#DCFCE7] text-[#22C55E]",
+      icon: IconCalendarCheck,
+      iconBg: "bg-[#DCFCE7]",
+      iconColor: "text-[#22C55E]",
+    },
+    {
+      label: "Tasks Pending",
+      value: stats?.tasksPending?.toString() ?? "0",
+      badge: "To-do",
+      badgeColor: "bg-[#FEF3C7] text-[#F59E0B]",
+      icon: IconUserX,
+      iconBg: "bg-[#FEF3C7]",
+      iconColor: "text-[#F59E0B]",
+    },
+  ]
+
+  const displayStats = isAdmin ? adminStats : employeeStats
 
   return (
     <motion.div
@@ -111,10 +153,16 @@ export default function DashboardPage() {
       <motion.div className="flex items-start justify-between" variants={fadeInUp}>
         <div>
           <h1 className="text-2xl font-bold text-[#1A202C]">
-            Good morning, Krishna 👋
+            {isLoading
+              ? "Loading..."
+              : `${getGreeting()}, ${firstName} 👋`
+            }
           </h1>
           <p className="text-sm text-[#6B7280] mt-1">
-            Here&apos;s what&apos;s happening in your company today.
+            {isAdmin
+              ? "Here's what's happening in your company today."
+              : "Here's your personal work summary for today."
+            }
           </p>
         </div>
         <motion.div
@@ -130,7 +178,7 @@ export default function DashboardPage() {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         variants={staggerContainer}
       >
-        {dynamicStats.map(({ label, value, badge, badgeColor, icon: Icon, iconBg, iconColor }) => (
+        {displayStats.map(({ label, value, badge, badgeColor, icon: Icon, iconBg, iconColor }) => (
           <motion.div
             key={label}
             variants={slideUp}
@@ -168,6 +216,7 @@ export default function DashboardPage() {
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Actions - same for all */}
         <motion.div
           className="lg:col-span-2 bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
           variants={fadeInUp}
@@ -207,6 +256,7 @@ export default function DashboardPage() {
           </motion.div>
         </motion.div>
 
+        {/* Right column — task stats + productivity */}
         <motion.div className="flex flex-col gap-4" variants={staggerContainer}>
           <motion.div
             className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
@@ -214,7 +264,9 @@ export default function DashboardPage() {
             whileHover={{ y: -2 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-[#1A202C]">Today&apos;s Tasks</h2>
+              <h2 className="text-base font-semibold text-[#1A202C]">
+                {isAdmin ? "Today's Tasks" : "My Tasks"}
+              </h2>
               <motion.span
                 className="h-6 w-6 rounded-full bg-[#DCFCE7] flex items-center justify-center"
                 whileHover={{ rotate: 15 }}
@@ -228,23 +280,23 @@ export default function DashboardPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
             >
-              {stats.tasksTotal}
+              {stats?.tasksTotal ?? 0}
             </motion.p>
             <div className="flex gap-6">
               <div>
                 <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Completed</p>
-                <p className="text-xl font-bold text-[#1A202C]">{stats.tasksCompleted}</p>
+                <p className="text-xl font-bold text-[#1A202C]">{stats?.tasksCompleted ?? 0}</p>
               </div>
               <div>
                 <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Pending</p>
-                <p className="text-xl font-bold text-[#1A202C]">{stats.tasksPending}</p>
+                <p className="text-xl font-bold text-[#1A202C]">{stats?.tasksPending ?? 0}</p>
               </div>
             </div>
             <div className="mt-4 h-1.5 rounded-full bg-[#F3F4F6] overflow-hidden">
               <motion.div
                 className="h-full rounded-full bg-[#22C55E]"
                 variants={progressBar}
-                custom={stats.tasksTotal > 0 ? (stats.tasksCompleted / stats.tasksTotal) * 100 : 0}
+                custom={stats?.tasksTotal > 0 ? Math.round((stats.tasksCompleted / stats.tasksTotal) * 100) : 0}
                 initial="hidden"
                 animate="visible"
               />
@@ -275,15 +327,17 @@ export default function DashboardPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ type: "spring", stiffness: 200, delay: 0.5 }}
               >
-                {stats.productivityScore}%
+                {stats?.productivityScore ?? 0}%
               </motion.p>
-              <span className="text-sm font-semibold text-[#22C55E]">+4% this week</span>
+              <span className="text-sm font-semibold text-[#22C55E]">
+                {stats?.productivityScore >= 75 ? "Great work!" : "Keep going!"}
+              </span>
             </div>
             <div className="mt-4 h-1.5 rounded-full bg-[#F3F4F6] overflow-hidden">
               <motion.div
                 className="h-full rounded-full bg-gradient-to-r from-[#22C55E] to-[#16A34A]"
                 variants={progressBar}
-                custom={stats.productivityScore}
+                custom={stats?.productivityScore ?? 0}
                 initial="hidden"
                 animate="visible"
               />
