@@ -38,9 +38,21 @@ export default function AuthPage() {
       </Button>
 
       {/* Left panel (Dark side) */}
-      <div className="relative hidden h-full flex-col bg-[#0D1B2A] p-10 text-white lg:flex dark:border-r">
-        {/* Abstract pattern or subtle gradient */}
-        <div className="absolute inset-0 bg-[#0D1B2A]" />
+      <div className="relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r overflow-hidden">
+        {/* Video Background */}
+        <video 
+          autoPlay 
+          muted 
+          loop 
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        >
+          <source src="/auth_screen_video.mp4" type="video/mp4" />
+        </video>
+        
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-[#0D1B2A]/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0D1B2A]/90 via-[#0D1B2A]/40 to-[#0D1B2A]/20" />
         
         {/* Logo area */}
         <div className="relative z-20 flex items-center gap-2 text-lg font-medium">
