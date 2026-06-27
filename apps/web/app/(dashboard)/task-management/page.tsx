@@ -1,15 +1,22 @@
 "use client"
 
 import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
-import { IconPlus, IconX, IconPlayerPlay, IconCheck, IconPlayerStop } from "@tabler/icons-react"
+import { IconPlus, IconPlayerPlay, IconCheck, IconPlayerStop } from "@tabler/icons-react"
 import {
   fadeInUp,
   staggerContainer,
   slideUp,
   staggerFast,
 } from "@/lib/animation-variants"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@workspace/ui/components/dialog"
 
 const STATUS_STYLES: Record<string, string> = {
   "IN_PROGRESS": "bg-[#FEF3C7] text-[#F59E0B]",
@@ -27,15 +34,6 @@ export default function TaskManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formData, setFormData] = useState({ title: "", description: "", employeeId: "", dueDate: "", priority: "MEDIUM" })
 
-  const { data: userProfile } = useQuery({
-    queryKey: ["sidebarProfile"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/me")
-      return res.json()
-    }
-  })
-  const isAdmin = userProfile?.data?.role === "ADMIN"
-
   const { data: queryData, isLoading, refetch } = useQuery({
     queryKey: ["TASKS"],
     queryFn: async () => {
@@ -44,8 +42,12 @@ export default function TaskManagementPage() {
       return res.json()
     },
   })
+  
   const TASKS = queryData?.data?.tasks || []
   const stats = queryData?.data?.stats || { total: 0, inProgress: 0, done: 0 }
+  
+  // The API directly tells us our role, no secondary queries needed!
+  const isAdmin = queryData?.data?.role === "ADMIN"
 
   const { data: employeesData } = useQuery({
     queryKey: ["EMPLOYEES_LIST"],
@@ -98,16 +100,108 @@ export default function TaskManagementPage() {
           <h1 className="text-2xl font-bold text-[#1A202C]">Task Management</h1>
           <p className="text-sm text-[#6B7280] mt-1">Track and assign tasks across the team</p>
         </div>
+        
         {isAdmin && (
-          <motion.button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-[#22C55E] hover:bg-[#16A34A] text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <IconPlus size={16} />
-            New Task
-          </motion.button>
+          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <DialogTrigger asChild>
+              <motion.button
+                className="flex items-center gap-2 bg-[#22C55E] hover:bg-[#16A34A] text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <IconPlus size={16} />
+                New Task
+              </motion.button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Assign New Task</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreateTask} className="space-y-4 pt-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
+                    Task Title
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                    placeholder="e.g. Design Landing Page"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
+                    Description
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                    placeholder="Add more details..."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
+                      Assign To
+                    </label>
+                    <select
+                      required
+                      value={formData.employeeId}
+                      onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] bg-white focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                    >
+                      <option value="" disabled>Select Employee</option>
+                      {employees.map((emp: any) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.firstName} {emp.lastName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
+                      Priority
+                    </label>
+                    <select
+                      value={formData.priority}
+                      onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] bg-white focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                    >
+                      <option value="LOW">Low</option>
+                      <option value="MEDIUM">Medium</option>
+                      <option value="HIGH">High</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                  />
+                </div>
+                <div className="pt-4">
+                  <motion.button
+                    type="submit"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-2.5 rounded-lg bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-sm transition-colors"
+                  >
+                    Assign Task
+                  </motion.button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         )}
       </motion.div>
 
@@ -212,118 +306,6 @@ export default function TaskManagementPage() {
           </motion.tbody>
         </table>
       </motion.div>
-
-      {/* Admin Task Creation Modal */}
-      <AnimatePresence>
-        {isModalOpen && isAdmin && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
-            >
-              <div className="flex items-center justify-between p-5 border-b border-[#E5E7EB]">
-                <h2 className="text-lg font-bold text-[#1A202C]">Assign New Task</h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-1 text-[#9CA3AF] hover:text-[#EF4444] rounded-lg transition-colors"
-                >
-                  <IconX size={20} />
-                </button>
-              </div>
-              <form onSubmit={handleCreateTask} className="p-5 space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
-                    Task Title
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
-                    placeholder="e.g. Design Landing Page"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
-                    Description
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
-                    placeholder="Add more details..."
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
-                      Assign To
-                    </label>
-                    <select
-                      required
-                      value={formData.employeeId}
-                      onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] bg-white focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
-                    >
-                      <option value="" disabled>Select Employee</option>
-                      {employees.map((emp: any) => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.firstName} {emp.lastName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
-                      Priority
-                    </label>
-                    <select
-                      value={formData.priority}
-                      onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] bg-white focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
-                    >
-                      <option value="LOW">Low</option>
-                      <option value="MEDIUM">Medium</option>
-                      <option value="HIGH">High</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
-                    Due Date
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.dueDate}
-                    onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
-                  />
-                </div>
-                <div className="pt-4">
-                  <motion.button
-                    type="submit"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full py-2.5 rounded-lg bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-sm transition-colors"
-                  >
-                    Assign Task
-                  </motion.button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   )
 }
