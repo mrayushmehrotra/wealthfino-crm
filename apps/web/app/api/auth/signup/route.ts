@@ -14,20 +14,6 @@ export async function POST(request: Request) {
 
   const isAdminEmail = email.toLowerCase() === "info@krishnapathak.com";
 
-  // Check if admin has allowed this email (bypass for the master admin)
-  if (!isAdminEmail) {
-    const allowed = await prisma.allowedEmail.findUnique({
-      where: { email },
-    });
-
-    if (!allowed) {
-      return NextResponse.json(
-        { success: false, error: { code: "FORBIDDEN", message: "This email has not been authorized by an admin." } },
-        { status: 403 }
-      );
-    }
-  }
-
   // Check if user already exists
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -43,29 +29,30 @@ export async function POST(request: Request) {
   const [firstName, ...lastNameParts] = name.split(" ");
   const lastName = lastNameParts.join(" ") || "";
 
-  // Create User and Employee, and delete the allowed email record in a transaction
-  const user = await prisma.$transaction(async (tx) => {
-    const newUser = await tx.user.create({
-      data: {
-        email,
-        passwordHash,
-        role: isAdminEmail ? "ADMIN" : "EMPLOYEE",
-        employee: {
-          create: {
-            firstName,
-            lastName,
-          },
+  // Create User and Employee
+  const user = await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      role: isAdminEmail ? "ADMIN" : "EMPLOYEE",
+      isApproved: isAdminEmail, // Only master admin is auto-approved
+      employee: {
+        create: {
+          firstName,
+          lastName,
         },
       },
-      include: { employee: true },
-    });
-
-    if (!isAdminEmail) {
-      await tx.allowedEmail.delete({ where: { email } });
-    }
-
-    return newUser;
+    },
+    include: { employee: true },
   });
+
+  if (!isAdminEmail) {
+    return NextResponse.json({
+      success: true,
+      pending: true,
+      message: "Your account request has been submitted and is pending admin approval.",
+    }, { status: 201 });
+  }
 
   const jwt = await import("jsonwebtoken");
   const token = jwt.sign(

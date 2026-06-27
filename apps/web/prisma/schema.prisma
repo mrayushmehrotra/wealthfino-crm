@@ -22,6 +22,7 @@ model User {
   email        String    @unique
   passwordHash String    @map("password_hash")
   role         Role      @default(EMPLOYEE)
+  isApproved   Boolean   @default(false) @map("is_approved")
   employee     Employee?
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")

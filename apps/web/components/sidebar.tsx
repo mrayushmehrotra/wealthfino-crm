@@ -29,7 +29,8 @@ import { staggerContainer, fadeInLeft } from "@/lib/animation-variants"
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: IconLayoutDashboard },
-  { label: "Employees", href: "/employees", icon: IconUsers },
+  { label: "Access Requests", href: "/access-requests", icon: IconUsers, adminOnly: true },
+  { label: "Employees", href: "/employees", icon: IconUsers, adminOnly: true },
   { label: "Attendance", href: "/attendance", icon: IconCalendarCheck },
   { label: "Leave Management", href: "/leave-management", icon: IconBeach },
   { label: "Task Management", href: "/task-management", icon: IconChecklist },
@@ -37,15 +38,15 @@ const NAV_ITEMS = [
   { label: "Work Log (Hourly)", href: "/work-log", icon: IconClock },
   { label: "Performance", href: "/performance", icon: IconChartBar },
   { label: "Announcements", href: "/announcements", icon: IconSpeakerphone },
-  { label: "Salary & Payroll", href: "/salary-payroll", icon: IconCash },
+  { label: "Salary & Payroll", href: "/salary-payroll", icon: IconCash, adminOnly: true },
   { label: "Calendar", href: "/calendar", icon: IconCalendar },
   { label: "Documents", href: "/documents", icon: IconFolder },
-  { label: "Reports & Analytics", href: "/reports", icon: IconChartPie },
+  { label: "Reports & Analytics", href: "/reports", icon: IconChartPie, adminOnly: true },
   { label: "Settings", href: "/settings", icon: IconSettings },
   { label: "Help & Support", href: "/support", icon: IconHelp },
 ]
 
-export function Sidebar() {
+export function Sidebar({ role = "EMPLOYEE" }: { role?: "ADMIN" | "MANAGER" | "EMPLOYEE" }) {
   const pathname = usePathname()
 
   return (
@@ -76,7 +77,7 @@ export function Sidebar() {
         initial="hidden"
         animate="visible"
       >
-        {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+        {NAV_ITEMS.filter((item) => role === "ADMIN" || !item.adminOnly).map(({ label, href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
           return (
             <motion.div key={href} variants={fadeInLeft}>
