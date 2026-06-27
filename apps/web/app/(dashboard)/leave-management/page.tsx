@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
 import { IconPlus } from "@tabler/icons-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   fadeInUp,
   staggerContainer,
@@ -42,6 +42,25 @@ export default function LeaveManagementPage() {
     },
   })
   
+  // Auto-calculate days when dates change
+  useEffect(() => {
+    if (leaveForm.fromDate && leaveForm.toDate) {
+      const start = new Date(leaveForm.fromDate)
+      const end = new Date(leaveForm.toDate)
+      
+      // Calculate difference in milliseconds
+      const diffTime = end.getTime() - start.getTime()
+      
+      if (diffTime >= 0) {
+        // Convert to days and add 1 (inclusive of start and end day)
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+        setLeaveForm(prev => ({ ...prev, days: diffDays }))
+      } else {
+        setLeaveForm(prev => ({ ...prev, days: 0 }))
+      }
+    }
+  }, [leaveForm.fromDate, leaveForm.toDate])
+
   const isAdmin = userProfile?.data?.role === "ADMIN"
 
   const { data: queryData, refetch } = useQuery({
@@ -159,10 +178,9 @@ export default function LeaveManagementPage() {
                   <label className="text-sm font-semibold text-[#374151]">Total Days</label>
                   <input 
                     type="number"
-                    min="1"
                     value={leaveForm.days}
-                    onChange={(e) => setLeaveForm(prev => ({ ...prev, days: Number(e.target.value) }))}
-                    className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
+                    className="w-full bg-[#F3F4F6] border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#6B7280] cursor-not-allowed focus:outline-none"
+                    readOnly
                     required
                   />
                 </div>
