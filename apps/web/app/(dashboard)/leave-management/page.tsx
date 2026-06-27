@@ -162,7 +162,7 @@ export default function LeaveManagementPage() {
                       className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
                       required
                     />
-                    {leaveForm.fromDate && (
+                    {leaveForm.fromDate && !isNaN(new Date(leaveForm.fromDate).getTime()) && (
                       <p className="text-[10px] text-[#6B7280]">
                         {new Date(leaveForm.fromDate).toLocaleDateString('en-GB', { dateStyle: 'medium' })}
                       </p>
@@ -175,9 +175,10 @@ export default function LeaveManagementPage() {
                       value={leaveForm.toDate}
                       onChange={(e) => setLeaveForm(prev => ({ ...prev, toDate: e.target.value }))}
                       className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
+                      min={leaveForm.fromDate}
                       required
                     />
-                    {leaveForm.toDate && (
+                    {leaveForm.toDate && !isNaN(new Date(leaveForm.toDate).getTime()) && (
                       <p className="text-[10px] text-[#6B7280]">
                         {new Date(leaveForm.toDate).toLocaleDateString('en-GB', { dateStyle: 'medium' })}
                       </p>
