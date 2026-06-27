@@ -28,7 +28,7 @@ export default function EmployeesPage() {
     },
   })
   
-  const EMPLOYEES: Record<string, unknown>[] = queryData?.data || []
+  const EMPLOYEES: Array<{ id: number; firstName: string; lastName: string; email: string; department: string; designation: string; joinedAt: string }> = queryData?.data || []
 
   return (
     <motion.div

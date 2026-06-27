@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
+import { useQuery } from "@tanstack/react-query"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const MONTHS = [
@@ -21,7 +22,7 @@ export default function CalendarPage() {
     },
   })
   
-  const EVENTS: Record<string, unknown>[] = queryData?.data || []
+  const EVENTS: Array<{ id: number; title: string; date: string; type: string }> = queryData?.data || []
 
   const now = new Date()
   const [month, setMonth] = useState(now.getMonth())

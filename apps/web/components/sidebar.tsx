@@ -44,7 +44,7 @@ const NAV_ITEMS = [
   { label: "Calendar", href: "/calendar", icon: IconCalendar },
   { label: "Documents", href: "/documents", icon: IconFolder },
   { label: "Reports & Analytics", href: "/reports", icon: IconChartPie, adminOnly: true },
-  { label: "Settings", href: "/settings", icon: IconSettings },
+  { label: "Settings", href: "/settings", icon: IconSettings, adminOnly: true },
   { label: "Help & Support", href: "/support", icon: IconHelp },
 ]
 

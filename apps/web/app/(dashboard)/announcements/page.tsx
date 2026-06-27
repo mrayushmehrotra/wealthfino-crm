@@ -21,7 +21,7 @@ export default function AnnouncementsPage() {
     },
   })
   
-  const ANNOUNCEMENTS: Record<string, unknown>[] = queryData?.data || []
+  const ANNOUNCEMENTS: Array<{ id: number; title: string; content: string; date: string; author: string; type: string }> = queryData?.data || []
 
   return (
     <motion.div

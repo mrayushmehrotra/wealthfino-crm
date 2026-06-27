@@ -25,7 +25,7 @@ export default function DocumentsPage() {
     },
   })
   
-  const DOCS: Record<string, unknown>[] = queryData?.data || []
+  const DOCS: Array<{ id: number; name: string; type: string; size: string; uploadedAt: string; category: string }> = queryData?.data || []
 
   return (
     <motion.div

@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   IconUsers,
   IconCalendarCheck,
@@ -11,6 +11,7 @@ import {
   IconChecklist,
   IconFileReport,
   IconClock,
+  IconShieldOff,
 } from "@tabler/icons-react"
 import Link from "next/link"
 import {
@@ -20,6 +21,8 @@ import {
   progressBar,
 } from "@/lib/animation-variants"
 import { useQuery } from "@tanstack/react-query"
+import { useSearchParams, useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
 
 const QUICK_ACTIONS = [
   { label: "Attendance", href: "/attendance", icon: IconCalendarCheck, iconBg: "bg-[#DCFCE7]", iconColor: "text-[#22C55E]" },
@@ -48,6 +51,19 @@ function formatDate() {
 }
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [showBlockedBanner, setShowBlockedBanner] = useState(searchParams.get("blocked") === "1")
+
+  useEffect(() => {
+    if (showBlockedBanner) {
+      // Clear the ?blocked=1 from the URL cleanly
+      router.replace("/dashboard")
+      const t = setTimeout(() => setShowBlockedBanner(false), 4000)
+      return () => clearTimeout(t)
+    }
+  }, [showBlockedBanner, router])
+
   const { data: statsData, isLoading } = useQuery({
     queryKey: ["dashboardStats"],
     queryFn: async () => {
@@ -150,6 +166,19 @@ export default function DashboardPage() {
       initial="hidden"
       animate="visible"
     >
+      <AnimatePresence>
+        {showBlockedBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            className="flex items-center gap-3 bg-[#FEE2E2] border border-[#FECACA] text-[#EF4444] text-sm font-medium px-4 py-3 rounded-xl"
+          >
+            <IconShieldOff size={18} className="shrink-0" />
+            <span>You don&apos;t have permission to access that page.</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <motion.div className="flex items-start justify-between" variants={fadeInUp}>
         <div>
           <h1 className="text-2xl font-bold text-[#1A202C]">
