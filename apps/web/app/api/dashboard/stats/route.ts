@@ -37,14 +37,7 @@ export async function GET() {
         }
       }
     });
-    const presentToday = attendanceRecords.filter(a => a.status === "PRESENT").length;
     const onLeave = attendanceRecords.filter(a => a.status === "ON_LEAVE").length;
-    const absent = totalEmployees - presentToday - onLeave;
-
-    const totalTasks = await prisma.task.count();
-    const completedTasks = await prisma.task.count({ where: { status: "DONE" } });
-    const pendingTasks = totalTasks - completedTasks;
-    const productivityScore = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     const activeEmployees = attendanceRecords
       .filter(a => a.status === "PRESENT" && a.checkIn && !a.checkOut)
@@ -53,6 +46,14 @@ export async function GET() {
         name: `${a.employee.firstName} ${a.employee.lastName}`,
         checkIn: a.checkIn
       }));
+      
+    const presentToday = activeEmployees.length;
+    const absent = totalEmployees - presentToday - onLeave;
+
+    const totalTasks = await prisma.task.count();
+    const completedTasks = await prisma.task.count({ where: { status: "DONE" } });
+    const pendingTasks = totalTasks - completedTasks;
+    const productivityScore = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     return NextResponse.json({
       success: true,
