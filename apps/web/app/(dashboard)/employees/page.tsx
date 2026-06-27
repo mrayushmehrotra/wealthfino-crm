@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
+import Link from "next/link"
 import { IconUsers, IconPlus, IconSearch } from "@tabler/icons-react"
 import {
   fadeInUp,
@@ -119,13 +120,15 @@ export default function EmployeesPage() {
                   </td>
                   <td className="px-5 py-4 text-[#6B7280]">{emp.joinedAt ? new Date(emp.joinedAt).toLocaleDateString() : "N/A"}</td>
                   <td className="px-5 py-4">
-                    <motion.button
-                      className="text-xs font-semibold text-[#22C55E] hover:underline"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      View
-                    </motion.button>
+                    <Link href={`/employees/${emp.id}`}>
+                      <motion.button
+                        className="text-xs font-semibold text-[#22C55E] hover:underline"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        View
+                      </motion.button>
+                    </Link>
                   </td>
                 </motion.tr>
               ))}
