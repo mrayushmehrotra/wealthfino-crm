@@ -44,7 +44,11 @@ export async function POST(request: Request) {
 
   const record = await prisma.attendance.upsert({
     where: { employeeId_date: { employeeId: Number(employeeId), date: new Date(date) } },
-    update: { checkIn: checkIn ? new Date(checkIn) : undefined, checkOut: checkOut ? new Date(checkOut) : undefined, status },
+    update: { 
+      checkIn: checkIn ? new Date(checkIn) : undefined, 
+      checkOut: checkOut === null ? null : (checkOut ? new Date(checkOut) : undefined), 
+      status 
+    },
     create: {
       employeeId: Number(employeeId),
       date: new Date(date),
