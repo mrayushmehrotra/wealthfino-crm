@@ -3,7 +3,7 @@
 import logoSrc from "@/app/logo.png"
 import Link from "next/link"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   IconLayoutDashboard,
@@ -23,6 +23,7 @@ import {
   IconHelp,
   IconBuildingBank,
   IconChevronRight,
+  IconLogout,
 } from "@tabler/icons-react"
 import { cn } from "@workspace/ui/lib/utils"
 import { staggerContainer, fadeInLeft } from "@/lib/animation-variants"
@@ -48,6 +49,17 @@ const NAV_ITEMS = [
 
 export function Sidebar({ role = "EMPLOYEE" }: { role?: "ADMIN" | "MANAGER" | "EMPLOYEE" }) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+      router.push("/")
+      router.refresh()
+    } catch (error) {
+      console.error("Logout failed:", error)
+    }
+  }
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col bg-[#0D1B2A]">
@@ -135,6 +147,13 @@ export function Sidebar({ role = "EMPLOYEE" }: { role?: "ADMIN" | "MANAGER" | "E
             <p className="text-sm font-semibold text-white truncate">Krishna Pathak</p>
             <p className="text-[11px] text-[#8A9BA8]">Admin</p>
           </div>
+          <button
+            onClick={handleLogout}
+            className="p-2 text-[#8A9BA8] hover:text-[#EF4444] hover:bg-white/5 rounded-lg transition-colors"
+            title="Logout"
+          >
+            <IconLogout size={18} stroke={1.8} />
+          </button>
         </div>
       </motion.div>
     </aside>
