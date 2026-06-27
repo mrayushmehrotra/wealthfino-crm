@@ -6,6 +6,7 @@ import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
+import { useEffect } from "react"
 import {
   IconLayoutDashboard,
   IconUsers,
@@ -64,6 +65,27 @@ export function Sidebar({ role = "EMPLOYEE" }: { role?: "ADMIN" | "MANAGER" | "E
   const user = queryData?.data
   const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : "Pending Setup"
   const initials = user?.employee ? `${user.employee.firstName[0]}${user.employee.lastName[0]}`.toUpperCase() : "??"
+
+  useEffect(() => {
+    if (user?.employee) {
+      const trackIP = async () => {
+        try {
+          const res = await fetch("https://api.ipify.org?format=json")
+          const { ip } = await res.json()
+          if (ip && ip !== user.employee.lastIp) {
+            await fetch("/api/auth/me/ip", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ip })
+            })
+          }
+        } catch (err) {
+          console.error("IP Tracking failed", err)
+        }
+      }
+      trackIP()
+    }
+  }, [user?.employee?.id])
 
   const handleLogout = async () => {
     try {

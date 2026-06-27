@@ -45,6 +45,7 @@ model Employee {
   leaveRequests LeaveRequest[]
   tasks         Task[]
   workLogs      WorkLog[]
+  lastIp        String?        @map("last_ip")
 
   @@map("employees")
 }
