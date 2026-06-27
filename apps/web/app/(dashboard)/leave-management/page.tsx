@@ -28,7 +28,7 @@ export default function LeaveManagementPage() {
   
   const isAdmin = userProfile?.data?.role === "ADMIN"
 
-  const { data: queryData, isLoading, refetch } = useQuery({
+  const { data: queryData, refetch } = useQuery({
     queryKey: ["LEAVES"],
     queryFn: async () => {
       const res = await fetch("/api/leave")
@@ -120,7 +120,7 @@ export default function LeaveManagementPage() {
             </tr>
           </thead>
           <motion.tbody className="divide-y divide-[#F3F4F6]" variants={staggerFast}>
-            {LEAVES.map((row: any) => {
+            {(LEAVES as Array<{ id: number; employee: { firstName: string; lastName: string }; fromDate: string; toDate: string; days: number; type: string; reason?: string; status: string }>).map((row) => {
               const empName = `${row.employee.firstName} ${row.employee.lastName}`
               const fromStr = new Date(row.fromDate).toLocaleDateString()
               const toStr = new Date(row.toDate).toLocaleDateString()

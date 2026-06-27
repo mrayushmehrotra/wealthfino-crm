@@ -18,7 +18,8 @@ export async function GET() {
   }
 
   // Remove passwordHash
-  const { passwordHash, ...safeUser } = user;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { passwordHash: _pw, ...safeUser } = user;
   
   // Get today's attendance to determine active status
   let todayAttendance = null;

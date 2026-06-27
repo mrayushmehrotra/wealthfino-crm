@@ -62,22 +62,23 @@ export function Topbar() {
   const isOnline = todayAttendance && todayAttendance.checkIn && !todayAttendance.checkOut
 
   const handleToggleStatus = async () => {
-    if (!user?.employee) return;
-    
+    if (!user?.employee?.id) {
+      console.warn("Cannot toggle status — no employee record linked to this user")
+      return
+    }
+
     const now = new Date().toISOString()
-    const payload: any = {
+    interface AttendancePayload { employeeId: number; date: string; status: string; checkIn?: string; checkOut?: string | null }
+    const payload: AttendancePayload = {
       employeeId: user.employee.id,
       date: new Date().toISOString().split("T")[0],
       status: "PRESENT"
     }
 
     if (isOnline) {
-      // Go offline
       payload.checkOut = now
     } else {
-      // Go online
       payload.checkIn = now
-      // Reset checkout if they are logging back in
       payload.checkOut = null
     }
 
@@ -121,8 +122,8 @@ export function Topbar() {
         />
       </motion.div>
 
-      <div className="ml-auto flex items-center gap-2">
-        {user?.employee && (
+        <div className="ml-auto flex items-center gap-2">
+        {user && (
           <motion.button
             onClick={handleToggleStatus}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors mr-2 ${

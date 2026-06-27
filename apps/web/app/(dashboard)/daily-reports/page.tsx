@@ -12,7 +12,7 @@ import {
 
 
 export default function DailyReportsPage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["REPORTS"],
     queryFn: async () => {
       const res = await fetch("/api/reports")
@@ -21,7 +21,7 @@ export default function DailyReportsPage() {
     },
   })
   
-  const REPORTS: any[] = queryData?.data || []
+  const REPORTS: Record<string, unknown>[] = queryData?.data || []
 
   return (
     <motion.div

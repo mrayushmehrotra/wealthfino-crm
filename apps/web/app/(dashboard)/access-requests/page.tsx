@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { IconUsers, IconCheck, IconX, IconSearch, IconLoader2 } from "@tabler/icons-react"
+import { IconCheck, IconX, IconSearch, IconLoader2 } from "@tabler/icons-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   fadeInUp,
@@ -103,7 +103,7 @@ export default function AccessRequestsPage() {
                 className="divide-y divide-[#F3F4F6]"
                 variants={staggerFast}
               >
-                {requests.map((req: any) => (
+                {(requests as Array<{ id: number; email: string; role: string; createdAt: string; employee?: { firstName: string; lastName: string } }>).map((req) => (
                   <motion.tr
                     key={req.id}
                     variants={fadeInUp}

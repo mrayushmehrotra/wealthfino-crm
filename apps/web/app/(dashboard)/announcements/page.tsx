@@ -12,7 +12,7 @@ import {
 
 
 export default function AnnouncementsPage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["ANNOUNCEMENTS"],
     queryFn: async () => {
       const res = await fetch("/api/announcements")
@@ -21,7 +21,7 @@ export default function AnnouncementsPage() {
     },
   })
   
-  const ANNOUNCEMENTS: any[] = queryData?.data || []
+  const ANNOUNCEMENTS: Record<string, unknown>[] = queryData?.data || []
 
   return (
     <motion.div

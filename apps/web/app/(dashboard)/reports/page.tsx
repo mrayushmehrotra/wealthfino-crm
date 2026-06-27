@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { fadeInUp, staggerContainer, slideUp, progressBar } from "@/lib/animation-variants"
+import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
 
 export default function ReportsPage() {
   const metrics = [

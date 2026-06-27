@@ -18,7 +18,7 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 export default function AttendancePage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["ATTENDANCE"],
     queryFn: async () => {
       const res = await fetch("/api/attendance")
@@ -28,7 +28,7 @@ export default function AttendancePage() {
   })
   
   const stats = queryData?.data?.stats || { present: 0, absent: 0, onLeave: 0 }
-  const ATTENDANCE = queryData?.data?.records || []
+  const ATTENDANCE: { employee: { id: number; firstName: string; lastName: string; department: string | null }; attendance: { checkIn: string | null; checkOut: string | null } | null; status: string }[] = queryData?.data?.records || []
 
   const today = new Date().toLocaleDateString("en-GB", {
     weekday: "long",

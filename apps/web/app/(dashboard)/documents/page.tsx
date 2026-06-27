@@ -16,7 +16,7 @@ const TYPE_ICONS: Record<string, ElementType> = { pdf: IconFileTypePdf, xls: Ico
 const TYPE_COLORS: Record<string, string> = { pdf: "text-[#EF4444] bg-[#FEE2E2]", xls: "text-[#22C55E] bg-[#DCFCE7]", doc: "text-[#3B82F6] bg-[#EFF6FF]" }
 
 export default function DocumentsPage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["DOCS"],
     queryFn: async () => {
       const res = await fetch("/api/documents")
@@ -25,7 +25,7 @@ export default function DocumentsPage() {
     },
   })
   
-  const DOCS: any[] = queryData?.data || []
+  const DOCS: Record<string, unknown>[] = queryData?.data || []
 
   return (
     <motion.div

@@ -11,10 +11,9 @@ import {
 
 
 const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`
-const totalPayroll = PAYROLL.reduce((s, r) => s + r.net, 0)
 
 export default function SalaryPayrollPage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["PAYROLL"],
     queryFn: async () => {
       const res = await fetch("/api/payroll")
@@ -23,7 +22,8 @@ export default function SalaryPayrollPage() {
     },
   })
   
-  const PAYROLL: any[] = queryData?.data || []
+  type PayrollRow = { name: string; role: string; basic: number; allowance: number; deduction: number; net: number }
+  const PAYROLL: PayrollRow[] = queryData?.data || []
 
   return (
     <motion.div
@@ -48,9 +48,9 @@ export default function SalaryPayrollPage() {
 
       <motion.div className="grid grid-cols-3 gap-4" variants={staggerContainer}>
         {[
-          { label: "Total Payroll", value: fmt(totalPayroll), color: "text-[#1A202C]" },
+          { label: "Total Payroll", value: fmt(PAYROLL.reduce((s, r) => s + r.net, 0)), color: "text-[#1A202C]" },
           { label: "Total Employees", value: PAYROLL.length.toString(), color: "text-[#22C55E]" },
-          { label: "Avg Salary", value: fmt(Math.round(totalPayroll / PAYROLL.length)), color: "text-[#3B82F6]" },
+          { label: "Avg Salary", value: PAYROLL.length ? fmt(Math.round(PAYROLL.reduce((s, r) => s + r.net, 0) / PAYROLL.length)) : "N/A", color: "text-[#3B82F6]" },
         ].map(({ label, value, color }) => (
           <motion.div
             key={label}

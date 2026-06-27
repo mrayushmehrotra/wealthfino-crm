@@ -39,7 +39,7 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 export default function PerformancePage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["PERFORMANCE"],
     queryFn: async () => {
       const res = await fetch("/api/performance")
@@ -48,7 +48,7 @@ export default function PerformancePage() {
     },
   })
   
-  const PERFORMANCE: any[] = queryData?.data || []
+  const PERFORMANCE: Array<{ name: string; role: string; tasks: number; completed: number; attendance: string; score: number }> = queryData?.data || []
 
   return (
     <motion.div

@@ -12,7 +12,7 @@ import {
 
 
 export default function SupportPage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["FAQS"],
     queryFn: async () => {
       const res = await fetch("/api/support")
@@ -21,7 +21,7 @@ export default function SupportPage() {
     },
   })
   
-  const FAQS: any[] = queryData?.data || []
+  const FAQS: Array<{ q: string; a: string }> = queryData?.data || []
 
   return (
     <motion.div

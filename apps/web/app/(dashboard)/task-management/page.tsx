@@ -34,7 +34,7 @@ export default function TaskManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formData, setFormData] = useState({ title: "", description: "", employeeId: "", dueDate: "", priority: "MEDIUM" })
 
-  const { data: queryData, isLoading, refetch } = useQuery({
+  const { data: queryData, refetch } = useQuery({
     queryKey: ["TASKS"],
     queryFn: async () => {
       const res = await fetch("/api/tasks")
@@ -155,7 +155,7 @@ export default function TaskManagementPage() {
                       className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] bg-white focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
                     >
                       <option value="" disabled>Select Employee</option>
-                      {employees.map((emp: any) => (
+                      {(employees as Array<{ id: number; firstName: string; lastName: string }>).map((emp) => (
                         <option key={emp.id} value={emp.id}>
                           {emp.firstName} {emp.lastName}
                         </option>
@@ -243,7 +243,7 @@ export default function TaskManagementPage() {
             </tr>
           </thead>
           <motion.tbody className="divide-y divide-[#F3F4F6]" variants={staggerFast}>
-            {TASKS.map((task: any) => (
+            {(TASKS as Array<{ id: number; title: string; description?: string; employee: { firstName: string; lastName: string }; dueDate?: string; priority: string; status: string }>).map((task) => (
               <motion.tr
                 key={task.id}
                 variants={fadeInUp}

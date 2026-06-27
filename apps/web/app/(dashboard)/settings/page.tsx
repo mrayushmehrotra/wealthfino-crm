@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
 
 export default function SettingsPage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["userProfile"],
     queryFn: async () => {
       const res = await fetch("/api/auth/me")

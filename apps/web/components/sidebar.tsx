@@ -23,7 +23,6 @@ import {
   IconChartPie,
   IconSettings,
   IconHelp,
-  IconBuildingBank,
   IconChevronRight,
   IconLogout,
 } from "@tabler/icons-react"
@@ -85,7 +84,7 @@ export function Sidebar({ role = "EMPLOYEE" }: { role?: "ADMIN" | "MANAGER" | "E
       }
       trackIP()
     }
-  }, [user?.employee?.id])
+  }, [user?.employee?.id, user?.employee])
 
   const handleLogout = async () => {
     try {

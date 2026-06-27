@@ -68,7 +68,7 @@ export async function PUT(request: Request) {
     });
 
     return NextResponse.json({ success: true, data: updatedLeave });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ success: false, error: "Failed to update leave request" }, { status: 500 });
   }
 }

@@ -12,7 +12,7 @@ import {
 
 
 export default function WorkLogPage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["LOGS"],
     queryFn: async () => {
       const res = await fetch("/api/work-log")
@@ -21,7 +21,7 @@ export default function WorkLogPage() {
     },
   })
   
-  const LOGS: any[] = queryData?.data || []
+  const LOGS: Array<{ name: string; date: string; task: string; start: string; end: string; hours: number }> = queryData?.data || []
 
   return (
     <motion.div

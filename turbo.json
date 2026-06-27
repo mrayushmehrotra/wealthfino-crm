@@ -8,7 +8,8 @@
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "env": ["JWT_SECRET", "NODE_ENV", "DATABASE_URL"]
     },
     "format": {
       "dependsOn": ["^format"]

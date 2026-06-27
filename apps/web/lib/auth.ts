@@ -15,7 +15,7 @@ export async function getUser(): Promise<SessionUser | null> {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as SessionUser;
     return decoded;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

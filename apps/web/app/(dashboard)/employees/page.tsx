@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
-import { IconUsers, IconPlus, IconSearch } from "@tabler/icons-react"
+import { IconPlus, IconSearch } from "@tabler/icons-react"
 import {
   fadeInUp,
   staggerContainer,
@@ -19,7 +19,7 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 export default function EmployeesPage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["EMPLOYEES"],
     queryFn: async () => {
       const res = await fetch("/api/employees")
@@ -28,7 +28,7 @@ export default function EmployeesPage() {
     },
   })
   
-  const EMPLOYEES: any[] = queryData?.data || []
+  const EMPLOYEES: Record<string, unknown>[] = queryData?.data || []
 
   return (
     <motion.div

@@ -12,7 +12,7 @@ const MONTHS = [
 
 
 export default function CalendarPage() {
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData } = useQuery({
     queryKey: ["EVENTS"],
     queryFn: async () => {
       const res = await fetch("/api/calendar")
@@ -21,7 +21,7 @@ export default function CalendarPage() {
     },
   })
   
-  const EVENTS: any[] = queryData?.data || []
+  const EVENTS: Record<string, unknown>[] = queryData?.data || []
 
   const now = new Date()
   const [month, setMonth] = useState(now.getMonth())
