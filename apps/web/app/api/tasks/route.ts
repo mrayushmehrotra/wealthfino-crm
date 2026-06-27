@@ -22,7 +22,10 @@ export async function GET() {
     done: tasks.filter(t => t.status === "DONE").length,
   };
 
-  return NextResponse.json({ success: true, data: { stats, tasks } });
+  return NextResponse.json({ 
+    success: true, 
+    data: { stats, tasks, role: user.role } 
+  });
 }
 
 export async function POST(request: Request) {

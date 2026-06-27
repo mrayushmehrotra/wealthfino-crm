@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { IconBell, IconMessage, IconSearch } from "@tabler/icons-react"
 import { staggerContainer, fadeIn } from "@/lib/animation-variants"
+import { useQuery } from "@tanstack/react-query"
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -42,6 +43,20 @@ const dotVariants = {
 export function Topbar() {
   const pathname = usePathname()
   const title = PAGE_TITLES[pathname] ?? "Dashboard"
+
+  const { data: queryData } = useQuery({
+    queryKey: ["sidebarProfile"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me")
+      if (!res.ok) throw new Error("Failed to fetch profile")
+      return res.json()
+    },
+  })
+
+  const user = queryData?.data
+  const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : (user ? "Admin" : "Loading...")
+  const initials = user?.employee ? `${user.employee.firstName[0]}${user.employee.lastName[0]}`.toUpperCase() : (user ? "AD" : "")
+  const roleDisplay = user?.role || "..."
 
   return (
     <motion.header
@@ -103,13 +118,13 @@ export function Topbar() {
           whileTap={{ scale: 0.98 }}
         >
           <div className="h-8 w-8 rounded-full bg-[#22C55E]/20 border border-[#22C55E]/30 flex items-center justify-center">
-            <span className="text-xs font-bold text-[#22C55E]">KP</span>
+            <span className="text-xs font-bold text-[#22C55E]">{initials}</span>
           </div>
           <div className="hidden sm:block">
             <p className="text-sm font-semibold text-[#1A202C] leading-none">
-              Krishna Pathak
+              {fullName}
             </p>
-            <p className="text-[11px] text-[#6B7280] mt-0.5">Admin</p>
+            <p className="text-[11px] text-[#6B7280] mt-0.5 capitalize">{roleDisplay.toLowerCase()}</p>
           </div>
         </motion.div>
       </div>
