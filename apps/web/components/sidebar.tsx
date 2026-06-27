@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import { useQuery } from "@tanstack/react-query"
 import {
   IconLayoutDashboard,
   IconUsers,
@@ -50,6 +51,19 @@ const NAV_ITEMS = [
 export function Sidebar({ role = "EMPLOYEE" }: { role?: "ADMIN" | "MANAGER" | "EMPLOYEE" }) {
   const pathname = usePathname()
   const router = useRouter()
+
+  const { data: queryData } = useQuery({
+    queryKey: ["sidebarProfile"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me")
+      if (!res.ok) throw new Error("Failed to fetch profile")
+      return res.json()
+    },
+  })
+
+  const user = queryData?.data
+  const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : "Pending Setup"
+  const initials = user?.employee ? `${user.employee.firstName[0]}${user.employee.lastName[0]}`.toUpperCase() : "??"
 
   const handleLogout = async () => {
     try {
@@ -141,11 +155,11 @@ export function Sidebar({ role = "EMPLOYEE" }: { role?: "ADMIN" | "MANAGER" | "E
       >
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-[#22C55E]/20 border border-[#22C55E]/30 flex items-center justify-center shrink-0">
-            <span className="text-xs font-bold text-[#22C55E]">KP</span>
+            <span className="text-xs font-bold text-[#22C55E]">{initials}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white truncate">Krishna Pathak</p>
-            <p className="text-[11px] text-[#8A9BA8]">Admin</p>
+            <p className="text-sm font-semibold text-white truncate">{user ? fullName : "Loading..."}</p>
+            <p className="text-[11px] text-[#8A9BA8] uppercase tracking-wider">{user?.role || "..."}</p>
           </div>
           <button
             onClick={handleLogout}
