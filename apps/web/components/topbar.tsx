@@ -71,7 +71,7 @@ export function Topbar() {
     interface AttendancePayload { employeeId: number; date: string; status: string; checkIn?: string; checkOut?: string | null }
     const payload: AttendancePayload = {
       employeeId: user.employee.id,
-      date: new Date().toISOString().split("T")[0],
+      date: new Date().toISOString().split("T")[0]!,
       status: "PRESENT"
     }
 

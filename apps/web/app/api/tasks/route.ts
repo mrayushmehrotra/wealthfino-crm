@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const queryWhere = user.role === "ADMIN" ? {} : { employee: { userId: user.id } };
+  const queryWhere = user.role === "ADMIN" ? {} : { employee: { userId: user.userId } };
 
   const tasks = await prisma.task.findMany({
     where: queryWhere,

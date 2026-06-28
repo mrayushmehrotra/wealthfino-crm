@@ -38,7 +38,7 @@ export async function GET() {
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
-    return d.toISOString().split("T")[0];
+    return d.toISOString().split("T")[0]!;
   });
 
   // We can count all completed tasks updated in those days (mocking the "done in time" logic if we don't have completedAt).
@@ -56,7 +56,7 @@ export async function GET() {
     let totalCompleted = 0;
     
     allTasks.forEach(t => {
-      const taskDate = new Date(t.updatedAt).toISOString().split("T")[0];
+      const taskDate = new Date(t.updatedAt).toISOString().split("T")[0]!;
       if (taskDate === dateStr) {
         totalCompleted++;
       }

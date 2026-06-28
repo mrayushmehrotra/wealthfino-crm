@@ -21,7 +21,7 @@ export default function DailyReportsPage() {
     },
   })
   
-  const REPORTS: Array<{ id: number; name: string; date: string; tasks: number; hours: number; status: string }> = queryData?.data || []
+  const REPORTS: Array<{ id: number; name: string; date: string; tasks: number; hours: number; status: string; summary?: string }> = queryData?.data || []
 
   return (
     <motion.div

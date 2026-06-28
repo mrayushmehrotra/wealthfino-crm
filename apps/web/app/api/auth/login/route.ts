@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   );
 
   if (user.employee) {
-    const todayStr = new Date().toISOString().split("T")[0];
+    const todayStr = new Date().toISOString().split("T")[0]!;
     const today = new Date(todayStr);
     const now = new Date();
 

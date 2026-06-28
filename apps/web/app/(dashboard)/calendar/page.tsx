@@ -22,7 +22,7 @@ export default function CalendarPage() {
     },
   })
   
-  const EVENTS: Array<{ id: number; title: string; date: string; type: string }> = queryData?.data || []
+  const EVENTS: Array<{ id: number; title: string; date: string; type: string; day?: number; color?: string }> = queryData?.data || []
 
   const now = new Date()
   const [month, setMonth] = useState(now.getMonth())

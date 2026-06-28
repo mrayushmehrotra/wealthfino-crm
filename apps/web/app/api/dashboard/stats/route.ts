@@ -10,7 +10,7 @@ export async function GET() {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = today.toISOString().split("T")[0]!;
 
   // Fetch full user + employee profile
   const fullUser = await prisma.user.findUnique({

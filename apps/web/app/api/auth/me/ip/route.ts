@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     // Update the employee's last known IP
     await prisma.employee.updateMany({
-      where: { userId: user.id },
+      where: { userId: user.userId },
       data: { lastIp: ip }
     });
 

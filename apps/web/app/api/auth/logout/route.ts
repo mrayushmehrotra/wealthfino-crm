@@ -17,7 +17,7 @@ export async function POST() {
       });
 
       if (user?.employee) {
-        const todayStr = new Date().toISOString().split("T")[0];
+        const todayStr = new Date().toISOString().split("T")[0]!;
         const today = new Date(todayStr);
         
         await prisma.attendance.updateMany({

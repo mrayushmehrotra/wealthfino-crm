@@ -4,14 +4,15 @@ import { getUser } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const employeeId = parseInt(params.id);
+  const { id } = await params;
+  const employeeId = parseInt(id);
   
   if (isNaN(employeeId)) {
     return NextResponse.json({ success: false, error: "Invalid ID" }, { status: 400 });

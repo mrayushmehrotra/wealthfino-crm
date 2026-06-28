@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   
   let todayAttendance = null;
   if (user.employee) {
-    const todayStr = new Date().toISOString().split("T")[0];
+    const todayStr = new Date().toISOString().split("T")[0]!;
     const today = new Date(todayStr);
     
     todayAttendance = await prisma.attendance.findUnique({
