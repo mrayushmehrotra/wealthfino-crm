@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   });
 
   // Map attendance to employees
-  const records = employees.map(emp => {
+  const records = employees.map((emp: typeof employees[number]) => {
     const record = attendanceRecords.find(a => a.employeeId === emp.id);
     return {
       employee: emp,
