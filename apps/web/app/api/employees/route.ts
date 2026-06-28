@@ -7,7 +7,37 @@ export async function GET() {
     include: { user: { select: { email: true, role: true } } },
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json({ success: true, data: employees });
+
+  // Extract IPs to fetch locations
+  const ipsToFetch = employees.map(e => e.lastIp).filter((ip): ip is string => Boolean(ip) && ip !== "::1" && ip !== "127.0.0.1" && ip !== "localhost");
+  const uniqueIps = Array.from(new Set(ipsToFetch));
+  
+  let ipLocations: Record<string, string> = {};
+  if (uniqueIps.length > 0) {
+    try {
+      const res = await fetch("http://ip-api.com/batch", {
+        method: "POST",
+        body: JSON.stringify(uniqueIps),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        data.forEach((loc: any) => {
+          if (loc.status === "success" && loc.query) {
+            ipLocations[loc.query] = `${loc.city}, ${loc.country}`;
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Failed to fetch IP locations", e);
+    }
+  }
+
+  const enrichedEmployees = employees.map(e => ({
+    ...e,
+    location: e.lastIp ? (ipLocations[e.lastIp] || "Unknown Location") : "N/A",
+  }));
+
+  return NextResponse.json({ success: true, data: enrichedEmployees });
 }
 
 export async function POST(request: Request) {

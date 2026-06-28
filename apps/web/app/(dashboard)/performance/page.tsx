@@ -3,13 +3,23 @@
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
 import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Area,
+  AreaChart
+} from "recharts"
+import {
   fadeInUp,
   staggerContainer,
   slideUp,
   staggerFast,
   progressBar,
 } from "@/lib/animation-variants"
-
 
 function ScoreBar({ score }: { score: number }) {
   const color = score >= 90 ? "#22C55E" : score >= 75 ? "#F59E0B" : "#EF4444"
@@ -43,12 +53,13 @@ export default function PerformancePage() {
     queryKey: ["PERFORMANCE"],
     queryFn: async () => {
       const res = await fetch("/api/performance")
-      if (!res.ok) return { data: [] }
+      if (!res.ok) return { data: [], chartData: [] }
       return res.json()
     },
   })
   
   const PERFORMANCE: Array<{ name: string; role: string; tasks: number; completed: number; attendance: string; score: number }> = queryData?.data || []
+  const CHART_DATA = queryData?.chartData || []
 
   return (
     <motion.div
@@ -80,6 +91,54 @@ export default function PerformancePage() {
             <p className={`text-3xl font-bold ${color}`}>{value}</p>
           </motion.div>
         ))}
+      </motion.div>
+
+      {/* CHART SECTION */}
+      <motion.div
+        className="bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6"
+        variants={slideUp}
+      >
+        <h2 className="text-lg font-bold text-[#1A202C] mb-6">Tasks Completed Over Time</h2>
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={CHART_DATA}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorTasks" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+              <XAxis 
+                dataKey="date" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#6B7280', fontSize: 12 }} 
+                dy={10}
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#6B7280', fontSize: 12 }} 
+                dx={-10}
+              />
+              <Tooltip 
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="Tasks Completed" 
+                stroke="#3B82F6" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorTasks)" 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </motion.div>
 
       <motion.div

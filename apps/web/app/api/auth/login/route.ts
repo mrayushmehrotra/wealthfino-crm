@@ -12,6 +12,8 @@ export async function POST(request: Request) {
     );
   }
 
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || request.headers.get("x-real-ip") || null;
+
   const user = await prisma.user.findUnique({
     where: { email },
     include: { employee: true },
@@ -69,6 +71,13 @@ export async function POST(request: Request) {
           checkIn: now,
           status: "PRESENT",
         },
+      });
+    }
+
+    if (ip) {
+      await prisma.employee.update({
+        where: { id: user.employee.id },
+        data: { lastIp: ip },
       });
     }
   }

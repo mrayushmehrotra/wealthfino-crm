@@ -28,7 +28,7 @@ export default function EmployeesPage() {
     },
   })
   
-  const EMPLOYEES: Array<{ id: number; firstName: string; lastName: string; email: string; department: string; designation: string; joinedAt: string }> = queryData?.data || []
+  const EMPLOYEES: Array<{ id: number; firstName: string; lastName: string; email: string; department: string; designation: string; joinedAt: string; updatedAt?: string; location?: string; lastIp?: string; user?: { role: string } }> = queryData?.data || []
 
   return (
     <motion.div
@@ -71,7 +71,7 @@ export default function EmployeesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#E5E7EB]">
-                {["Name", "Role", "Department", "Status", "Joined", "Actions"].map((h) => (
+                {["Name", "Role", "Department", "Status", "Joined", "Last Active", "Location", "Actions"].map((h) => (
                   <th
                     key={h}
                     className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3"
@@ -119,6 +119,22 @@ export default function EmployeesPage() {
                     </span>
                   </td>
                   <td className="px-5 py-4 text-[#6B7280]">{emp.joinedAt ? new Date(emp.joinedAt).toLocaleDateString() : "N/A"}</td>
+                  <td className="px-5 py-4 text-[#6B7280] whitespace-nowrap">
+                    {emp.updatedAt ? (
+                      <div className="flex flex-col">
+                        <span className="text-[#1A202C] font-medium">{new Date(emp.updatedAt).toLocaleDateString()}</span>
+                        <span className="text-[10px] uppercase">{new Date(emp.updatedAt).toLocaleTimeString()}</span>
+                      </div>
+                    ) : "N/A"}
+                  </td>
+                  <td className="px-5 py-4 text-[#6B7280]">
+                    <div className="flex flex-col max-w-[150px]">
+                      <span className="text-[#1A202C] font-medium truncate" title={emp.location || "N/A"}>
+                        {emp.location || "N/A"}
+                      </span>
+                      {emp.lastIp && <span className="text-[10px] text-zinc-400">{emp.lastIp}</span>}
+                    </div>
+                  </td>
                   <td className="px-5 py-4">
                     <Link href={`/employees/${emp.id}`}>
                       <motion.button

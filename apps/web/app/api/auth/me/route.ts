@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || request.headers.get("x-real-ip") || null;
+
   const sessionUser = await getUser();
   if (!sessionUser) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
@@ -44,6 +46,15 @@ export async function GET() {
           status: "PRESENT",
         }
       });
+    }
+
+    if (ip) {
+      await prisma.employee.update({
+        where: { id: user.employee.id },
+        data: { lastIp: ip },
+      });
+      // also update user.employee.lastIp in memory so we return it
+      user.employee.lastIp = ip;
     }
   }
 
