@@ -257,7 +257,7 @@ export default function TaskManagementPage() {
                   {task.employee.firstName} {task.employee.lastName}
                 </td>
                 <td className="px-5 py-4 text-[#6B7280]">
-                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No Date"}
+                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-GB') : "No Date"}
                 </td>
                 <td className="px-5 py-4">
                   <span

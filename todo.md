@@ -1,4 +1,5 @@
 [] - daily reports me jo work hourly hai usko as a pdf bananke downloadble banana hai  
+
 [] - change the date month year dd/mm/yyyy in the leave management
 [] - add all the total no. of leaves in the leave management for the employees too for that employees
 in the per employee section for the admin panel, i want show his entire history performance, phone, name,

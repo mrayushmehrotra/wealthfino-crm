@@ -164,7 +164,7 @@ export default function LeaveManagementPage() {
                     />
                     {leaveForm.fromDate && !isNaN(new Date(leaveForm.fromDate).getTime()) && (
                       <p className="text-[10px] text-[#6B7280]">
-                        {new Date(leaveForm.fromDate).toLocaleDateString('en-GB', { dateStyle: 'medium' })}
+                        {new Date(leaveForm.fromDate).toLocaleDateString('en-GB')}
                       </p>
                     )}
                   </div>
@@ -180,7 +180,7 @@ export default function LeaveManagementPage() {
                     />
                     {leaveForm.toDate && !isNaN(new Date(leaveForm.toDate).getTime()) && (
                       <p className="text-[10px] text-[#6B7280]">
-                        {new Date(leaveForm.toDate).toLocaleDateString('en-GB', { dateStyle: 'medium' })}
+                        {new Date(leaveForm.toDate).toLocaleDateString('en-GB')}
                       </p>
                     )}
                   </div>
@@ -267,8 +267,8 @@ export default function LeaveManagementPage() {
           <motion.tbody className="divide-y divide-[#F3F4F6]" variants={staggerFast}>
             {(LEAVES as Array<{ id: number; employee: { firstName: string; lastName: string }; fromDate: string; toDate: string; days: number; type: string; reason?: string; status: string }>).map((row) => {
               const empName = `${row.employee.firstName} ${row.employee.lastName}`
-              const fromStr = new Date(row.fromDate).toLocaleDateString()
-              const toStr = new Date(row.toDate).toLocaleDateString()
+              const fromStr = new Date(row.fromDate).toLocaleDateString('en-GB')
+              const toStr = new Date(row.toDate).toLocaleDateString('en-GB')
               const statusDisplay = row.status === "PENDING" ? "Pending" : row.status === "APPROVED" ? "Approved" : "Rejected"
               
               const formatType = (t: string) => {
