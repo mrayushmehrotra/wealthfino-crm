@@ -125,6 +125,7 @@ export default function TaskManagementPage() {
                   <input
                     type="text"
                     required
+                    
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
@@ -181,13 +182,20 @@ export default function TaskManagementPage() {
                   <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
                     Due Date
                   </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.dueDate}
-                    onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      required
+                      value={formData.dueDate}
+                      onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    />
+                    <div className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] flex items-center h-10">
+                      {formData.dueDate && !isNaN(new Date(formData.dueDate).getTime()) 
+                        ? new Date(formData.dueDate).toLocaleDateString('en-GB') 
+                        : <span className="text-[#9CA3AF]">dd/mm/yyyy</span>}
+                    </div>
+                  </div>
                 </div>
                 <div className="pt-4">
                   <motion.button

@@ -153,36 +153,40 @@ export default function LeaveManagementPage() {
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 relative">
                     <label className="text-sm font-semibold text-[#374151]">From Date</label>
-                    <input 
-                      type="date"
-                      value={leaveForm.fromDate}
-                      onChange={(e) => setLeaveForm(prev => ({ ...prev, fromDate: e.target.value }))}
-                      className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
-                      required
-                    />
-                    {leaveForm.fromDate && !isNaN(new Date(leaveForm.fromDate).getTime()) && (
-                      <p className="text-[10px] text-[#6B7280]">
-                        {new Date(leaveForm.fromDate).toLocaleDateString('en-GB')}
-                      </p>
-                    )}
+                    <div className="relative">
+                      <input 
+                        type="date"
+                        value={leaveForm.fromDate}
+                        onChange={(e) => setLeaveForm(prev => ({ ...prev, fromDate: e.target.value }))}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        required
+                      />
+                      <div className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] flex items-center h-10">
+                        {leaveForm.fromDate && !isNaN(new Date(leaveForm.fromDate).getTime()) 
+                          ? new Date(leaveForm.fromDate).toLocaleDateString('en-GB') 
+                          : <span className="text-[#9CA3AF]">dd/mm/yyyy</span>}
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 relative">
                     <label className="text-sm font-semibold text-[#374151]">To Date</label>
-                    <input 
-                      type="date"
-                      value={leaveForm.toDate}
-                      onChange={(e) => setLeaveForm(prev => ({ ...prev, toDate: e.target.value }))}
-                      className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
-                      min={leaveForm.fromDate}
-                      required
-                    />
-                    {leaveForm.toDate && !isNaN(new Date(leaveForm.toDate).getTime()) && (
-                      <p className="text-[10px] text-[#6B7280]">
-                        {new Date(leaveForm.toDate).toLocaleDateString('en-GB')}
-                      </p>
-                    )}
+                    <div className="relative">
+                      <input 
+                        type="date"
+                        value={leaveForm.toDate}
+                        onChange={(e) => setLeaveForm(prev => ({ ...prev, toDate: e.target.value }))}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        min={leaveForm.fromDate}
+                        required
+                      />
+                      <div className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] flex items-center h-10">
+                        {leaveForm.toDate && !isNaN(new Date(leaveForm.toDate).getTime()) 
+                          ? new Date(leaveForm.toDate).toLocaleDateString('en-GB') 
+                          : <span className="text-[#9CA3AF]">dd/mm/yyyy</span>}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-1.5">
