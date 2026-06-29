@@ -62,12 +62,18 @@ export function Topbar() {
 
   const user = queryData?.data
   const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : (isPending ? "Loading..." : "Admin")
-  const initials = user?.employee ? `${user.employee.firstName[0]}${user.employee.lastName[0]}`.toUpperCase() : (isPending ? ".." : "AD")
+  const firstName = user?.employee?.firstName || ""
+  const lastName = user?.employee?.lastName || ""
+  const initials = user?.employee ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() : (isPending ? ".." : "AD")
   const roleDisplay = user?.role || (isPending ? "..." : "admin")
 
   const todayAttendance = user?.todayAttendance
   const hasCheckedIn = !!todayAttendance?.checkIn
   const showCheckInModal = user?.employee && user?.role !== "ADMIN" && !hasCheckedIn
+
+  const checkInTime = todayAttendance?.checkIn 
+    ? new Date(todayAttendance.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+    : null
 
   const [isCheckingIn, setIsCheckingIn] = useState(false)
 
@@ -127,6 +133,13 @@ export function Topbar() {
       </motion.div>
 
         <div className="ml-auto flex items-center gap-2">
+        {checkInTime && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30 mr-2">
+            <span className="h-2 w-2 rounded-full bg-[#22C55E] animate-pulse" />
+            <span className="text-xs font-bold uppercase tracking-wider">Check-in: {checkInTime}</span>
+          </div>
+        )}
+        
         {/* Check-In Modal overlay */}
         <Dialog open={showCheckInModal} onOpenChange={() => {}}>
           <DialogContent className="sm:max-w-[400px] bg-white border border-[#E5E7EB] p-6 text-center [&>button]:hidden">
