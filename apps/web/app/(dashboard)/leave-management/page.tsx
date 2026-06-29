@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
-import { IconPlus } from "@tabler/icons-react"
+import { IconCalendar, IconPlus } from "@tabler/icons-react"
 import { useState, useEffect } from "react"
 import {
   fadeInUp,
