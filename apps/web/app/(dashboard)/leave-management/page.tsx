@@ -10,6 +10,9 @@ import {
   slideUp,
   staggerFast,
 } from "@/lib/animation-variants"
+import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
+import { Calendar } from "@workspace/ui/components/calendar"
+import { format } from "date-fns"
 import {
   Dialog,
   DialogContent,
@@ -153,40 +156,66 @@ export default function LeaveManagementPage() {
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5 relative">
+                  <div className="space-y-1.5 flex flex-col">
                     <label className="text-sm font-semibold text-[#374151]">From Date</label>
-                    <div className="relative">
-                      <input 
-                        type="date"
-                        value={leaveForm.fromDate}
-                        onChange={(e) => setLeaveForm(prev => ({ ...prev, fromDate: e.target.value }))}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        required
-                      />
-                      <div className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] flex items-center h-10">
-                        {leaveForm.fromDate && !isNaN(new Date(leaveForm.fromDate).getTime()) 
-                          ? new Date(leaveForm.fromDate).toLocaleDateString('en-GB') 
-                          : <span className="text-[#9CA3AF]">dd/mm/yyyy</span>}
-                      </div>
-                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] flex items-center justify-between h-10 hover:bg-[#F9FAFB] transition-colors"
+                        >
+                          {leaveForm.fromDate && !isNaN(new Date(leaveForm.fromDate).getTime()) 
+                            ? new Date(leaveForm.fromDate).toLocaleDateString('en-GB') 
+                            : <span className="text-[#9CA3AF]">dd/mm/yyyy</span>}
+                          <IconCalendar size={16} className="text-[#9CA3AF]" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={leaveForm.fromDate ? new Date(leaveForm.fromDate) : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              setLeaveForm(prev => ({ ...prev, fromDate: format(date, "yyyy-MM-dd") }))
+                            } else {
+                              setLeaveForm(prev => ({ ...prev, fromDate: "" }))
+                            }
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
-                  <div className="space-y-1.5 relative">
+                  <div className="space-y-1.5 flex flex-col">
                     <label className="text-sm font-semibold text-[#374151]">To Date</label>
-                    <div className="relative">
-                      <input 
-                        type="date"
-                        value={leaveForm.toDate}
-                        onChange={(e) => setLeaveForm(prev => ({ ...prev, toDate: e.target.value }))}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        min={leaveForm.fromDate}
-                        required
-                      />
-                      <div className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] flex items-center h-10">
-                        {leaveForm.toDate && !isNaN(new Date(leaveForm.toDate).getTime()) 
-                          ? new Date(leaveForm.toDate).toLocaleDateString('en-GB') 
-                          : <span className="text-[#9CA3AF]">dd/mm/yyyy</span>}
-                      </div>
-                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] flex items-center justify-between h-10 hover:bg-[#F9FAFB] transition-colors"
+                        >
+                          {leaveForm.toDate && !isNaN(new Date(leaveForm.toDate).getTime()) 
+                            ? new Date(leaveForm.toDate).toLocaleDateString('en-GB') 
+                            : <span className="text-[#9CA3AF]">dd/mm/yyyy</span>}
+                          <IconCalendar size={16} className="text-[#9CA3AF]" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={leaveForm.toDate ? new Date(leaveForm.toDate) : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              setLeaveForm(prev => ({ ...prev, toDate: format(date, "yyyy-MM-dd") }))
+                            } else {
+                              setLeaveForm(prev => ({ ...prev, toDate: "" }))
+                            }
+                          }}
+                          disabled={(date) => leaveForm.fromDate ? date < new Date(leaveForm.fromDate) : false}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
                 <div className="space-y-1.5">

@@ -3,7 +3,10 @@
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
-import { IconPlus, IconPlayerPlay, IconCheck, IconPlayerStop } from "@tabler/icons-react"
+import { IconPlus, IconPlayerPlay, IconCheck, IconPlayerStop, IconCalendar } from "@tabler/icons-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
+import { Calendar } from "@workspace/ui/components/calendar"
+import { format } from "date-fns"
 import {
   fadeInUp,
   staggerContainer,
@@ -178,25 +181,38 @@ export default function TaskManagementPage() {
                     </select>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
-                    Due Date
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      required
-                      value={formData.dueDate}
-                      onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-                    <div className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] flex items-center h-10">
-                      {formData.dueDate && !isNaN(new Date(formData.dueDate).getTime()) 
-                        ? new Date(formData.dueDate).toLocaleDateString('en-GB') 
-                        : <span className="text-[#9CA3AF]">dd/mm/yyyy</span>}
-                    </div>
+                  <div className="space-y-1.5 flex flex-col">
+                    <label className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
+                      Due Date
+                    </label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-sm text-[#1A202C] flex items-center justify-between h-[38px] hover:bg-[#F9FAFB] transition-colors"
+                        >
+                          {formData.dueDate && !isNaN(new Date(formData.dueDate).getTime()) 
+                            ? new Date(formData.dueDate).toLocaleDateString('en-GB') 
+                            : <span className="text-[#9CA3AF]">dd/mm/yyyy</span>}
+                          <IconCalendar size={16} className="text-[#9CA3AF]" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-[100]" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formData.dueDate ? new Date(formData.dueDate) : undefined}
+                          onSelect={(date) => {
+                            if (date) {
+                              setFormData({ ...formData, dueDate: format(date, "yyyy-MM-dd") })
+                            } else {
+                              setFormData({ ...formData, dueDate: "" })
+                            }
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
-                </div>
                 <div className="pt-4">
                   <motion.button
                     type="submit"
