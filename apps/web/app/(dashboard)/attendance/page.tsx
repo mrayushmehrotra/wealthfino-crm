@@ -28,7 +28,8 @@ export default function AttendancePage() {
   })
   
   const stats = queryData?.data?.stats || { present: 0, absent: 0, onLeave: 0 }
-  const ATTENDANCE: { employee: { id: number; firstName: string; lastName: string; department: string | null }; attendance: { checkIn: string | null; checkOut: string | null } | null; status: string }[] = queryData?.data?.records || []
+  const role = queryData?.data?.role || "ADMIN"
+  const ATTENDANCE: { date?: string; employee: { id: number; firstName: string; lastName: string; department: string | null }; attendance: { checkIn: string | null; checkOut: string | null } | null; status: string }[] = queryData?.data?.records || []
 
   const today = new Date().toLocaleDateString("en-GB", {
     weekday: "long",
@@ -101,12 +102,14 @@ export default function AttendancePage() {
       >
         <div className="px-5 py-4 border-b border-[#E5E7EB] flex items-center gap-2">
           <IconCalendarCheck size={18} className="text-[#22C55E]" />
-          <span className="font-semibold text-[#1A202C] text-sm">Today&apos;s Attendance</span>
+          <span className="font-semibold text-[#1A202C] text-sm">
+            {role === "EMPLOYEE" ? "My Attendance History" : "Today's Attendance"}
+          </span>
         </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[#E5E7EB]">
-              {["Employee", "Check-In", "Check-Out", "Hours", "Status"].map((h) => (
+              {[role === "EMPLOYEE" ? "Date" : "Employee", "Check-In", "Check-Out", "Hours", "Status"].map((h) => (
                 <th
                   key={h}
                   className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3"
@@ -137,13 +140,17 @@ export default function AttendancePage() {
 
               const statusFormatted = row.status === "PRESENT" ? "Present" : row.status === "ABSENT" ? "Absent" : "On Leave"
 
+              const firstCol = role === "EMPLOYEE" && row.date 
+                ? new Date(row.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) 
+                : `${row.employee.firstName} ${row.employee.lastName}`
+
               return (
                 <motion.tr
-                  key={row.employee.id}
+                  key={row.employee.id + (row.date ? row.date : "")}
                   variants={fadeInUp}
                   className="hover:bg-[#F9FAFB] transition-colors"
                 >
-                  <td className="px-5 py-4 font-medium text-[#1A202C]">{empName}</td>
+                  <td className="px-5 py-4 font-medium text-[#1A202C]">{firstCol}</td>
                   <td className="px-5 py-4 text-[#6B7280]">{checkInTime}</td>
                   <td className="px-5 py-4 text-[#6B7280]">{checkOutTime}</td>
                   <td className="px-5 py-4 text-[#6B7280]">{hoursStr}</td>
