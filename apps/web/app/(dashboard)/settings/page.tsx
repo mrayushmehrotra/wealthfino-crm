@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
 import { useState, useEffect } from "react"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
-import { IconSearch, IconLoader2, IconDeviceFloppy, IconUser } from "@tabler/icons-react"
+import { IconSearch, IconLoader2, IconDeviceFloppy, IconUser, IconPhoto, IconCalendar, IconChecklist, IconClock, IconCash } from "@tabler/icons-react"
 
 export default function SettingsPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -21,10 +21,22 @@ export default function SettingsPage() {
     aadharCard: "",
     panNumber: "",
     salary: "",
-    bonus: "",
     department: "",
     designation: "",
+    image: "",
   })
+
+  const { data: userData } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const res = await fetch("/api/auth/me")
+      if (!res.ok) throw new Error("Failed to fetch profile")
+      return res.json()
+    },
+  })
+
+  const currentUser = userData?.data
+  const isAdmin = currentUser?.role === "ADMIN"
 
   const { data: employeesData } = useQuery({
     queryKey: ["EMPLOYEES"],
@@ -33,19 +45,28 @@ export default function SettingsPage() {
       if (!res.ok) return { data: [] }
       return res.json()
     },
+    enabled: isAdmin,
   })
 
   const employees: Array<{ id: number; firstName: string; lastName: string; user: { email: string } | null; department: string | null }> = employeesData?.data || []
 
-  const filtered = employees.filter((emp) => {
-    if (!searchQuery) return true
-    const q = searchQuery.toLowerCase()
-    return (
-      emp.firstName.toLowerCase().includes(q) ||
-      emp.lastName.toLowerCase().includes(q) ||
-      emp.user?.email?.toLowerCase().includes(q)
-    )
-  })
+  useEffect(() => {
+    if (!isAdmin && currentUser?.employee?.id) {
+      setSelectedId(currentUser.employee.id)
+    }
+  }, [isAdmin, currentUser?.employee?.id])
+
+  const filtered = isAdmin
+    ? employees.filter((emp) => {
+        if (!searchQuery) return true
+        const q = searchQuery.toLowerCase()
+        return (
+          emp.firstName.toLowerCase().includes(q) ||
+          emp.lastName.toLowerCase().includes(q) ||
+          emp.user?.email?.toLowerCase().includes(q)
+        )
+      })
+    : []
 
   const { data: profileData } = useQuery({
     queryKey: ["employeeDetail", selectedId],
@@ -80,9 +101,9 @@ export default function SettingsPage() {
       if (form.aadharCard !== (emp?.aadharCard || "")) payload.aadharCard = form.aadharCard || null
       if (form.panNumber !== (emp?.panNumber || "")) payload.panNumber = form.panNumber || null
       if (form.salary !== (emp?.salary != null ? String(emp.salary) : "")) payload.salary = form.salary ? parseFloat(form.salary) : null
-      if (form.bonus !== (emp?.bonus != null ? String(emp.bonus) : "")) payload.bonus = form.bonus ? parseFloat(form.bonus) : 0
       if (form.department !== (emp?.department || "")) payload.department = form.department || null
       if (form.designation !== (emp?.designation || "")) payload.designation = form.designation || null
+      if (form.image !== (emp?.image || "")) payload.image = form.image || null
 
       if (Object.keys(payload).length === 0) {
         setSuccess("No changes to save.")
@@ -113,6 +134,17 @@ export default function SettingsPage() {
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
   }
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string
+      setForm((prev) => ({ ...prev, image: base64 }))
+    }
+    reader.readAsDataURL(file)
+  }
+
   useEffect(() => {
     if (emp) {
       setForm({
@@ -123,9 +155,9 @@ export default function SettingsPage() {
         aadharCard: emp.aadharCard || "",
         panNumber: emp.panNumber || "",
         salary: emp.salary != null ? String(emp.salary) : "",
-        bonus: emp.bonus != null ? String(emp.bonus) : "",
         department: emp.department || "",
         designation: emp.designation || "",
+        image: emp.image || "",
       })
     }
   }, [emp])
@@ -142,8 +174,9 @@ export default function SettingsPage() {
         <p className="text-sm text-[#6B7280] mt-1">Manage employee details and account information</p>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Employee Selector */}
+      <div className={`grid ${isAdmin ? "grid-cols-1 lg:grid-cols-3" : "grid-cols-1"} gap-6`}>
+        {/* Employee Selector — admin only */}
+        {isAdmin && (
         <motion.div
           variants={slideUp}
           className="lg:col-span-1 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
@@ -183,11 +216,12 @@ export default function SettingsPage() {
             )}
           </div>
         </motion.div>
+        )}
 
         {/* Edit Form */}
         <motion.div
           variants={slideUp}
-          className="lg:col-span-2 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+          className={`${isAdmin ? "lg:col-span-2" : "lg:col-span-1"} bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
         >
           {selectedId && emp ? (
             <div>
@@ -206,6 +240,36 @@ export default function SettingsPage() {
               )}
 
               <div className="p-5 space-y-6">
+                {/* Profile Image & Personal Info */}
+                <div className="flex gap-6">
+                  <div className="shrink-0 flex flex-col items-center gap-2">
+                    <div className="h-24 w-24 rounded-full bg-[#DCFCE7] flex items-center justify-center overflow-hidden border-2 border-[#E5E7EB]">
+                      {form.image ? (
+                        <img src={form.image} alt="Profile" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-3xl font-bold text-[#22C55E]">
+                          {(emp.firstName?.[0] || "").toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      <span className="text-xs font-semibold text-[#22C55E] hover:underline flex items-center gap-1">
+                        <IconPhoto size={14} /> Upload Photo
+                      </span>
+                    </label>
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Profile Image</label>
+                    <p className="text-xs text-[#9CA3AF]">Upload a photo to set as profile image. The image will be stored as base64.</p>
+                  </div>
+                </div>
+
                 {/* Personal Info */}
                 <div>
                   <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Personal Info</h3>
@@ -297,15 +361,39 @@ export default function SettingsPage() {
                         className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Bonus (₹)</label>
-                      <input
-                        type="number"
-                        value={form.bonus}
-                        onChange={setField("bonus")}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
-                      />
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="border-t border-[#E5E7EB] pt-6">
+                  <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Statistics (read-only)</h3>
+                  <div className="grid grid-cols-5 gap-3">
+                    <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
+                      <p className="text-2xl font-bold text-[#3B82F6]">{emp.totalAttendance ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Attendance</p>
                     </div>
+                    <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
+                      <p className="text-2xl font-bold text-[#F59E0B]">{emp.totalLeaves ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Leaves</p>
+                    </div>
+                    <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
+                      <p className="text-2xl font-bold text-[#22C55E]">{emp.totalCheckIns ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Check-ins</p>
+                    </div>
+                    <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
+                      <p className="text-2xl font-bold text-[#EF4444]">{emp.totalCheckOuts ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Check-outs</p>
+                    </div>
+                    <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
+                      <p className="text-2xl font-bold text-[#8B5CF6]">{emp.totalTasks ?? 0}</p>
+                      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Tasks</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider flex items-center gap-1">
+                      <IconCash size={14} /> Bonus (on profile)
+                    </span>
+                    <span className="text-lg font-bold text-[#1A202C]">₹{(emp.bonus ? Number(emp.bonus) : 0).toLocaleString()}</span>
                   </div>
                 </div>
               </div>

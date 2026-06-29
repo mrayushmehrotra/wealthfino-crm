@@ -4,10 +4,8 @@ import { jwtVerify } from "jose";
 
 // Routes that only admins can access
 const ADMIN_ONLY_ROUTES = [
-  "/settings",
   "/access-requests",
   "/employees",
-  "/salary-payroll",
   "/reports",
 ];
 
@@ -50,10 +48,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/settings/:path*",
     "/access-requests/:path*",
     "/employees/:path*",
-    "/salary-payroll/:path*",
     "/reports/:path*",
   ],
 };

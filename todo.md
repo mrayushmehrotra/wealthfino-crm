@@ -3,7 +3,7 @@
 [x] - Change the date format to dd/mm/yyyy in leave management and task management.
 [x] - Show the total number of leaves in the leave management section for employees as well.
 
-[] - In the per-employee section of the admin panel, show their entire performance history, phone, name, email, address, Aadhar card, salary, leave, bonus, total number of leaves, PAN number, total attendance, and the total number of check-ins and check-outs.
+[x] - In the per-employee section of the admin panel, show their entire performance history, phone, name, email, address, Aadhar card, salary, leave, bonus, total number of leaves, PAN number, total attendance, and the total number of check-ins and check-outs.
 
 [] - In salary and payroll, only the admin can generate the salary slip for the month. Employees can only download their slip (PDF) for that month.
 

@@ -36,14 +36,6 @@ export async function GET() {
 
   const checkInMap = new Map(checkInOutCounts.map(c => [c.employeeId, { checkIns: Number(c.checkIns), checkOuts: Number(c.checkOuts) }]));
 
-  const bonusData = employees.length > 0
-    ? await prisma.$queryRawUnsafe<Array<{ employeeId: number; totalBonus: string }>>(
-        `SELECT employee_id AS employeeId, COALESCE(SUM(bonus), 0) AS totalBonus FROM payroll WHERE employee_id IN (${employeeIds.join(",")}) AND status = 'PAID' GROUP BY employee_id`
-      )
-    : [];
-
-  const bonusMap = new Map(bonusData.map(b => [b.employeeId, parseFloat(b.totalBonus)]));
-
   // Extract IPs to fetch locations
   const ipsToFetch = employees.map(e => e.lastIp).filter((ip): ip is string => Boolean(ip) && ip !== "::1" && ip !== "127.0.0.1" && ip !== "localhost");
   const uniqueIps = Array.from(new Set(ipsToFetch));
@@ -80,7 +72,7 @@ export async function GET() {
       aadharCard: e.aadharCard,
       panNumber: e.panNumber,
       salary: e.salary ? Number(e.salary) : null,
-      bonus: bonusMap.get(e.id) || 0,
+      bonus: e.bonus ? Number(e.bonus) : 0,
       department: e.department,
       designation: e.designation,
       joinedAt: e.joinedAt,

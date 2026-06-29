@@ -33,7 +33,14 @@ export async function GET(
       },
       attendance: {
         orderBy: { date: "desc" },
-      }
+      },
+      _count: {
+        select: {
+          attendance: true,
+          leaveRequests: true,
+          tasks: true,
+        },
+      },
     },
   });
 
@@ -41,16 +48,32 @@ export async function GET(
     return NextResponse.json({ success: false, error: "Employee not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ success: true, data: employee });
+  const checkInOut = await prisma.$queryRawUnsafe<Array<{ checkIns: bigint; checkOuts: bigint }>>(
+    `SELECT
+       COUNT(CASE WHEN check_in IS NOT NULL THEN 1 END) AS checkIns,
+       COUNT(CASE WHEN check_out IS NOT NULL THEN 1 END) AS checkOuts
+     FROM attendance WHERE employee_id = ${employeeId}`
+  );
+
+  const data = {
+    ...employee,
+    totalAttendance: employee._count.attendance,
+    totalLeaves: employee._count.leaveRequests,
+    totalTasks: employee._count.tasks,
+    totalCheckIns: Number(checkInOut[0]?.checkIns || 0),
+    totalCheckOuts: Number(checkInOut[0]?.checkOuts || 0),
+  };
+
+  return NextResponse.json({ success: true, data });
 }
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await getUser();
-  if (!user || user.role !== "ADMIN") {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
+  const session = await getUser();
+  if (!session) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
@@ -59,8 +82,16 @@ export async function PATCH(
     return NextResponse.json({ success: false, error: "Invalid ID" }, { status: 400 });
   }
 
+  // Only admins can edit any employee; employees can only edit themselves
+  if (session.role !== "ADMIN") {
+    const ownEmployee = await prisma.employee.findUnique({ where: { userId: session.userId }, select: { id: true } });
+    if (!ownEmployee || ownEmployee.id !== employeeId) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   const body = await request.json();
-  const { firstName, lastName, phone, address, aadharCard, panNumber, salary, bonus, department, designation } = body;
+  const { firstName, lastName, phone, address, aadharCard, panNumber, salary, bonus, department, designation, image } = body;
 
   const updated = await prisma.employee.update({
     where: { id: employeeId },
@@ -75,6 +106,7 @@ export async function PATCH(
       ...(bonus !== undefined && { bonus }),
       ...(department !== undefined && { department }),
       ...(designation !== undefined && { designation }),
+      ...(image !== undefined && { image }),
     },
   });
 

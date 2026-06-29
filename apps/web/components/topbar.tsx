@@ -2,10 +2,11 @@
 
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
-import { IconBell, IconMessage, IconSearch } from "@tabler/icons-react"
-import { staggerContainer, fadeIn } from "@/lib/animation-variants"
+import { IconBell, IconMessage, IconSearch, IconX, IconLoader2 } from "@tabler/icons-react"
+import { staggerContainer } from "@/lib/animation-variants"
 import { useQuery } from "@tanstack/react-query"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -61,6 +62,7 @@ export function Topbar() {
   })
 
   const user = queryData?.data
+  const isAdmin = user?.role === "ADMIN"
   const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : (isPending ? "Loading..." : "Admin")
   const firstName = user?.employee?.firstName || ""
   const lastName = user?.employee?.lastName || ""
@@ -76,6 +78,34 @@ export function Topbar() {
     : null
 
   const [isCheckingIn, setIsCheckingIn] = useState(false)
+
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<Array<{ id: number; name: string; email: string; phone: string | null; department: string | null; salary: number | null }>>([])
+  const [searching, setSearching] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([])
+      return
+    }
+    clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true)
+      try {
+        const res = await fetch(`/api/employees/search?q=${encodeURIComponent(searchQuery.trim())}`)
+        if (res.ok) {
+          const data = await res.json()
+          setSearchResults(data.data || [])
+        }
+      } finally {
+        setSearching(false)
+      }
+    }, 300)
+    return () => clearTimeout(debounceRef.current)
+  }, [searchQuery])
 
   const handleCheckIn = async () => {
     if (!user?.employee?.id) return
@@ -115,24 +145,18 @@ export function Topbar() {
         {title}
       </span>
 
-      <motion.div
-        className="relative hidden sm:flex flex-1 max-w-sm"
-        variants={fadeIn}
-      >
-        <IconSearch
-          size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none"
-        />
-        <motion.input
-          type="text"
-          placeholder="Search anything..."
-          className="w-full pl-9 pr-4 py-2 rounded-full border border-[#E5E7EB] bg-[#F5F7FA] text-sm text-[#1A202C] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
-          whileFocus={{ scale: 1.01, backgroundColor: "#FFFFFF" }}
-          transition={{ duration: 0.2 }}
-        />
-      </motion.div>
+      {isAdmin && (
+        <motion.button
+          onClick={() => setSearchOpen(true)}
+          className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F5F7FA] transition-colors"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <IconSearch size={20} className="text-[#6B7280]" stroke={1.8} />
+        </motion.button>
+      )}
 
-        <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-2">
         {checkInTime && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30 mr-2">
             <span className="h-2 w-2 rounded-full bg-[#22C55E] animate-pulse" />
@@ -202,6 +226,55 @@ export function Topbar() {
           </div>
         </motion.div>
       </div>
+
+      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <DialogContent className="sm:max-w-[500px] bg-white border border-[#E5E7EB] p-0 gap-0">
+          <div className="flex items-center border-b border-[#E5E7EB] px-4">
+            <IconSearch size={18} className="text-[#9CA3AF] shrink-0" />
+            <input
+              type="text"
+              placeholder="Search by name, email, phone, or salary..."
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 px-3 py-4 text-sm text-[#1A202C] placeholder-[#9CA3AF] focus:outline-none bg-transparent"
+            />
+            {searchQuery && (
+              <button onClick={() => { setSearchQuery(""); setSearchResults([]) }} className="text-[#6B7280] hover:text-[#1A202C]">
+                <IconX size={16} />
+              </button>
+            )}
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {searching && (
+              <div className="flex items-center justify-center py-8">
+                <IconLoader2 size={20} className="text-[#6B7280] animate-spin" />
+              </div>
+            )}
+            {!searching && searchResults.length === 0 && searchQuery.trim() && (
+              <p className="py-8 text-center text-sm text-[#9CA3AF]">No employees found.</p>
+            )}
+            {!searching && searchResults.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => { router.push(`/employees/${r.id}`); setSearchOpen(false); setSearchQuery(""); setSearchResults([]) }}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#F9FAFB] transition-colors text-left border-b border-[#F3F4F6] last:border-0"
+              >
+                <div className="h-8 w-8 rounded-full bg-[#22C55E]/20 border border-[#22C55E]/30 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-[#22C55E]">
+                    {r.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[#1A202C]">{r.name}</p>
+                  <p className="text-xs text-[#6B7280] truncate">{r.email}{r.phone ? ` · ${r.phone}` : ""}{r.salary ? ` · ₹${r.salary.toLocaleString("en-IN")}` : ""}</p>
+                </div>
+                <span className="text-[10px] font-semibold text-[#6B7280] uppercase">{r.department || "N/A"}</span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.header>
   )
 }

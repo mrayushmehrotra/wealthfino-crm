@@ -50,7 +50,9 @@ model Employee {
   leaveRequests LeaveRequest[]
   tasks         Task[]
   workLogs      WorkLog[]
+  payroll       Payroll[]
   lastIp        String?        @map("last_ip")
+  image         String?        @db.MediumText
 
   @@map("employees")
 }
@@ -155,10 +157,12 @@ model Payroll {
   basic      Decimal       @db.Decimal(12, 2)
   allowances Decimal       @default(0.00) @db.Decimal(12, 2)
   deductions Decimal       @default(0.00) @db.Decimal(12, 2)
+  bonus      Decimal       @default(0.00) @db.Decimal(12, 2)
   netPay     Decimal       @map("net_pay") @db.Decimal(12, 2)
   status     PayrollStatus @default(DRAFT)
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
+  employee   Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, month, year])
   @@map("payroll")
