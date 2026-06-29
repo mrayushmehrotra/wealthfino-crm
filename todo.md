@@ -1,30 +1,27 @@
-[] - daily reports me jo work hourly hai usko as a pdf bananke downloadble banana hai  
+[] - Make the hourly work from the daily reports downloadable as a PDF.
 
-[] - change the date month year dd/mm/yyyy in the leave management
-[] - add all the total no. of leaves in the leave management for the employees too for that employees
-in the per employee section for the admin panel, i want show his entire history performance, phone, name,
-email, adresss, aadhar card, salary, leave, bonus, bonus, total no. of leaves, pan number, total attendace, and the total no. of check in and out for that employee
+[x] - Change the date format to dd/mm/yyyy in leave management and task management.
+[] - Show the total number of leaves in the leave management section for employees as well.
+In the per-employee section of the admin panel, show their entire performance history, phone, name, email, address, Aadhar card, salary, leave, bonus, total number of leaves, PAN number, total attendance, and the total number of check-ins and check-outs.
 
-[] - in the salary and payroll, only admin can generate the salary slip for month, and employees can only download that slip (pdf) for that month
+[] - In salary and payroll, only the admin can generate the salary slip for the month. Employees can only download their slip (PDF) for that month.
 
-[] - (this entire process should be approved via admin in the end, then only the backend will allow to download the salary slip to the employee)
-if employees want to download a old salary slip, add a date picker and
-then search in the backend for salary slip date, if that exists then download that pdf for that employee
+[] - (This entire process must be approved by the admin in the end; only then will the backend allow the employee to download the salary slip.)
+If employees want to download an old salary slip, add a date picker and search the backend for that salary slip date. If it exists, allow the employee to download the PDF.
 
-[] - in the work log hourly i want after what did you work on, in the right side of that, a small dropdown that is status for the current task,
-create a status title in that, => done, not yet started, pending, in progress,
+[] - In the hourly work log, next to "what did you work on" (on the right side), add a small dropdown for the status of the current task. 
+Create status options: Done, Not Yet Started, Pending, In Progress.
 
-[] - for admin panel, i want to create a employee calendar log details month wise, that will have it's entire history in which if
-user completes that day tasks, then that date bg should be green , and if some are done, some are pending, then it yellow, and if mostly not done like
-70% < , then make it red
+[] - For the admin panel, create a month-wise employee calendar log that displays their entire history. 
+If the user completed their tasks for the day, the date background should be green. If some are done and some are pending, make it yellow. If most are not done (e.g. >70% incomplete), make it red.
 
-[] - only for employees when user clicks on the attendace, give them a check-in button, that will store the first check in time only and immutable for the entire day, and
-as the user checks in , now give them check out button , that will store the check out time only and immutable for the entire day
+[] - For employees only, when they click on attendance, provide a "check-in" button that stores the first check-in time (making it immutable for the entire day).
+After the user checks in, provide a "check-out" button that stores the check-out time (also immutable for the entire day).
 
-[] - give the search button only to admin , in that search admin can search for employee name, email, phone, salary, try to match all the employees having this data, in any field
+[] - Provide a global search button for admins only. The admin should be able to search by employee name, email, phone, or salary, matching any employee that has this data in any field.
 
-[] - har ek login pe, employee ka ip fetch krega, and update krega in the db
+[] - On every login, fetch the employee's IP address and update it in the database.
 
-[] - in the employee list in the admin panel, i want to show in the name field, if they have a image, then only show that image, else first letter of the name
+[] - In the employee list on the admin panel, if they have a profile image, display the image next to their name. Otherwise, show the first letter of their name.
 
-[] - employee can replace images
+[] - Allow employees to replace their profile images.
