@@ -25,7 +25,7 @@ export async function GET() {
   return NextResponse.json({ 
     success: true, 
     data: {
-      stats: { pending, approved, rejected },
+      stats: { total: requests.length, pending, approved, rejected },
       requests
     }
   });

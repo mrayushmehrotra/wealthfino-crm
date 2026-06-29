@@ -75,7 +75,7 @@ export default function LeaveManagementPage() {
     },
   })
   
-  const stats = queryData?.data?.stats || { pending: 0, approved: 0, rejected: 0 }
+  const stats = queryData?.data?.stats || { total: 0, pending: 0, approved: 0, rejected: 0 }
   const LEAVES = queryData?.data?.requests || []
 
   const handleStatusUpdate = async (leaveId: number, status: "APPROVED" | "REJECTED") => {
@@ -256,8 +256,9 @@ export default function LeaveManagementPage() {
         )}
       </motion.div>
 
-      <motion.div className="grid grid-cols-3 gap-4" variants={staggerContainer}>
+      <motion.div className="grid grid-cols-4 gap-4" variants={staggerContainer}>
         {[
+          { label: "Total", count: stats.total, style: "text-[#3B82F6] bg-[#EFF6FF]" },
           { label: "Pending", count: stats.pending, style: "text-[#F59E0B] bg-[#FEF3C7]" },
           { label: "Approved", count: stats.approved, style: "text-[#22C55E] bg-[#DCFCE7]" },
           { label: "Rejected", count: stats.rejected, style: "text-[#EF4444] bg-[#FEE2E2]" },

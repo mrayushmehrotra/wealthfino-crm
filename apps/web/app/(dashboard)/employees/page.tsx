@@ -2,8 +2,8 @@
 
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
-import Link from "next/link"
-import { IconPlus, IconSearch } from "@tabler/icons-react"
+import { useState } from "react"
+import { IconPlus, IconSearch, IconChevronDown, IconMail, IconPhone, IconCalendar, IconUserCheck, IconId, IconCash, IconReportAnalytics } from "@tabler/icons-react"
 import {
   fadeInUp,
   staggerContainer,
@@ -12,13 +12,34 @@ import {
 } from "@/lib/animation-variants"
 
 
-const STATUS_STYLES: Record<string, string> = {
-  Present: "bg-[#DCFCE7] text-[#22C55E]",
-  Absent: "bg-[#FEE2E2] text-[#EF4444]",
-  "On Leave": "bg-[#FEF3C7] text-[#F59E0B]",
+interface Employee {
+  id: number
+  firstName: string
+  lastName: string
+  phone: string | null
+  address: string | null
+  aadharCard: string | null
+  panNumber: string | null
+  salary: number | null
+  bonus: number
+  department: string | null
+  designation: string | null
+  joinedAt: string
+  updatedAt: string | null
+  location: string | null
+  lastIp: string | null
+  user: { email: string; role: string } | null
+  totalAttendance: number
+  totalLeaves: number
+  totalTasks: number
+  totalCheckIns: number
+  totalCheckOuts: number
 }
 
 export default function EmployeesPage() {
+  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+
   const { data: queryData } = useQuery({
     queryKey: ["EMPLOYEES"],
     queryFn: async () => {
@@ -27,8 +48,35 @@ export default function EmployeesPage() {
       return res.json()
     },
   })
-  
-  const EMPLOYEES: Array<{ id: number; firstName: string; lastName: string; email: string; department: string; designation: string; joinedAt: string; updatedAt?: string; location?: string; lastIp?: string; user?: { role: string } }> = queryData?.data || []
+
+  const EMPLOYEES: Employee[] = queryData?.data || []
+
+  const filtered = EMPLOYEES.filter((emp) => {
+    if (!searchQuery) return true
+    const q = searchQuery.toLowerCase()
+    return (
+      emp.firstName.toLowerCase().includes(q) ||
+      emp.lastName.toLowerCase().includes(q) ||
+      emp.user?.email?.toLowerCase().includes(q) ||
+      emp.department?.toLowerCase().includes(q) ||
+      emp.designation?.toLowerCase().includes(q)
+    )
+  })
+
+  const toggleExpand = (id: number) => {
+    setExpandedId(expandedId === id ? null : id)
+  }
+
+  const formatDate = (d: string) => {
+    if (!d) return "N/A"
+    return new Date(d).toLocaleDateString('en-GB')
+  }
+
+  const initials = (emp: Employee) => {
+    const f = emp.firstName?.[0] || ""
+    const l = emp.lastName?.[0] || ""
+    return `${f}${l}`.toUpperCase()
+  }
 
   return (
     <motion.div
@@ -59,11 +107,12 @@ export default function EmployeesPage() {
         <div className="p-4 border-b border-[#E5E7EB]">
           <div className="relative max-w-sm">
             <IconSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-            <motion.input
+            <input
               type="text"
               placeholder="Search employees..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E] transition-colors"
-              whileFocus={{ scale: 1.01 }}
             />
           </div>
         </div>
@@ -71,85 +120,168 @@ export default function EmployeesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[#E5E7EB]">
-                {["Name", "Role", "Department", "Status", "Joined", "Last Active", "Location", "Actions"].map((h) => (
-                  <th
-                    key={h}
-                    className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3"
-                  >
-                    {h}
-                  </th>
-                ))}
+                <th className="w-10 px-2 py-3" />
+                <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Employee</th>
+                <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Department</th>
+                <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Role</th>
+                <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Status</th>
+                <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Joined</th>
+                <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Location</th>
               </tr>
             </thead>
-            <motion.tbody
-              className="divide-y divide-[#F3F4F6]"
-              variants={staggerFast}
-            >
-              {EMPLOYEES.map((emp) => (
-                <motion.tr
-                  key={emp.id}
-                  variants={fadeInUp}
-                  className="hover:bg-[#F9FAFB] transition-colors"
-                >
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
+            <motion.tbody className="divide-y divide-[#F3F4F6]" variants={staggerFast}>
+              {filtered.map((emp) => (
+                <motion.tbody key={emp.id} variants={fadeInUp} className="contents">
+                  <tr
+                    className="hover:bg-[#F9FAFB] transition-colors cursor-pointer"
+                    onClick={() => toggleExpand(emp.id)}
+                  >
+                    <td className="px-2 py-4 text-center">
                       <motion.div
-                        className="h-8 w-8 rounded-full bg-[#DCFCE7] flex items-center justify-center"
-                        whileHover={{ scale: 1.15 }}
+                        animate={{ rotate: expandedId === emp.id ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
                       >
-                        <span className="text-xs font-bold text-[#22C55E]">
-                          {emp.firstName?.[0] || ""}{emp.lastName?.[0] || ""}
-                        </span>
+                        <IconChevronDown size={16} className="text-[#9CA3AF]" />
                       </motion.div>
-                      <span className="font-medium text-[#1A202C]">{emp.firstName} {emp.lastName}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-[#6B7280]">
-                    <div className="flex flex-col">
-                      <span className="text-[#1A202C] font-medium">{emp.designation || "N/A"}</span>
-                      <span className="text-[10px] uppercase tracking-wider">{emp.user?.role || "EMPLOYEE"}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-[#6B7280]">{emp.department || "N/A"}</td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES["Present"]}`}
-                    >
-                      Active
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-[#6B7280]">{emp.joinedAt ? new Date(emp.joinedAt).toLocaleDateString() : "N/A"}</td>
-                  <td className="px-5 py-4 text-[#6B7280] whitespace-nowrap">
-                    {emp.updatedAt ? (
-                      <div className="flex flex-col">
-                        <span className="text-[#1A202C] font-medium">{new Date(emp.updatedAt).toLocaleDateString()}</span>
-                        <span className="text-[10px] uppercase">{new Date(emp.updatedAt).toLocaleTimeString()}</span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-[#DCFCE7] flex items-center justify-center shrink-0">
+                          <span className="text-xs font-bold text-[#22C55E]">{initials(emp)}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-medium text-[#1A202C] block">{emp.firstName} {emp.lastName}</span>
+                          <span className="text-[11px] text-[#9CA3AF]">{emp.user?.email || ""}</span>
+                        </div>
                       </div>
-                    ) : "N/A"}
-                  </td>
-                  <td className="px-5 py-4 text-[#6B7280]">
-                    <div className="flex flex-col max-w-[150px]">
-                      <span className="text-[#1A202C] font-medium truncate" title={emp.location || "N/A"}>
-                        {emp.location || "N/A"}
-                      </span>
-                      {emp.lastIp && <span className="text-[10px] text-zinc-400">{emp.lastIp}</span>}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <Link href={`/employees/${emp.id}`}>
-                      <motion.button
-                        className="text-xs font-semibold text-[#22C55E] hover:underline"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        View
-                      </motion.button>
-                    </Link>
-                  </td>
-                </motion.tr>
+                    </td>
+                    <td className="px-5 py-4 text-[#6B7280]">{emp.department || "N/A"}</td>
+                    <td className="px-5 py-4 text-[#6B7280]">
+                      <div className="flex flex-col">
+                        <span className="text-[#1A202C] font-medium">{emp.designation || "N/A"}</span>
+                        <span className="text-[10px] uppercase tracking-wider">{emp.user?.role || "EMPLOYEE"}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#DCFCE7] text-[#22C55E]">Active</span>
+                    </td>
+                    <td className="px-5 py-4 text-[#6B7280]">{formatDate(emp.joinedAt)}</td>
+                    <td className="px-5 py-4 text-[#6B7280] max-w-[140px] truncate">{emp.location || "N/A"}</td>
+                  </tr>
+                  {expandedId === emp.id && (
+                    <tr>
+                      <td colSpan={7} className="px-6 pb-6 pt-2">
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          transition={{ duration: 0.25, ease: "easeInOut" }}
+                          className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] p-6"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Personal Info */}
+                            <div className="space-y-3">
+                              <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider flex items-center gap-1.5">
+                                <IconUserCheck size={14} /> Personal Info
+                              </h3>
+                              <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280]">Name</span>
+                                  <span className="font-medium text-[#1A202C]">{emp.firstName} {emp.lastName}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280] flex items-center gap-1"><IconMail size={14} /> Email</span>
+                                  <span className="font-medium text-[#1A202C]">{emp.user?.email || "N/A"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280] flex items-center gap-1"><IconPhone size={14} /> Phone</span>
+                                  <span className="font-medium text-[#1A202C]">{emp.phone || "N/A"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280]">Address</span>
+                                  <span className="font-medium text-[#1A202C] text-right max-w-[180px]">{emp.address || "N/A"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280] flex items-center gap-1"><IconCalendar size={14} /> Joined</span>
+                                  <span className="font-medium text-[#1A202C]">{formatDate(emp.joinedAt)}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Documents & Financial */}
+                            <div className="space-y-3">
+                              <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider flex items-center gap-1.5">
+                                <IconId size={14} /> Documents &amp; Financial
+                              </h3>
+                              <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280]">Aadhar Card</span>
+                                  <span className="font-medium text-[#1A202C]">{emp.aadharCard || "N/A"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280]">PAN Number</span>
+                                  <span className="font-medium text-[#1A202C]">{emp.panNumber || "N/A"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280] flex items-center gap-1"><IconCash size={14} /> Salary</span>
+                                  <span className="font-medium text-[#1A202C]">{emp.salary != null ? `₹${emp.salary.toLocaleString()}` : "N/A"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280] flex items-center gap-1"><IconCash size={14} /> Bonus</span>
+                                  <span className="font-medium text-[#1A202C]">₹{(emp.bonus || 0).toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280]">Department</span>
+                                  <span className="font-medium text-[#1A202C]">{emp.department || "N/A"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-[#6B7280]">Designation</span>
+                                  <span className="font-medium text-[#1A202C]">{emp.designation || "N/A"}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Stats */}
+                            <div className="space-y-3">
+                              <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider flex items-center gap-1.5">
+                                <IconReportAnalytics size={14} /> Statistics
+                              </h3>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-white rounded-lg border border-[#E5E7EB] p-3 text-center">
+                                  <p className="text-2xl font-bold text-[#3B82F6]">{emp.totalAttendance}</p>
+                                  <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Attendance</p>
+                                </div>
+                                <div className="bg-white rounded-lg border border-[#E5E7EB] p-3 text-center">
+                                  <p className="text-2xl font-bold text-[#F59E0B]">{emp.totalLeaves}</p>
+                                  <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Leaves</p>
+                                </div>
+                                <div className="bg-white rounded-lg border border-[#E5E7EB] p-3 text-center">
+                                  <p className="text-2xl font-bold text-[#22C55E]">{emp.totalCheckIns}</p>
+                                  <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Check-ins</p>
+                                </div>
+                                <div className="bg-white rounded-lg border border-[#E5E7EB] p-3 text-center">
+                                  <p className="text-2xl font-bold text-[#EF4444]">{emp.totalCheckOuts}</p>
+                                  <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Check-outs</p>
+                                </div>
+                              </div>
+                              <div className="bg-white rounded-lg border border-[#E5E7EB] p-3 flex items-center justify-between">
+                                <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">Tasks</span>
+                                <span className="text-lg font-bold text-[#1A202C]">{emp.totalTasks}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      </td>
+                    </tr>
+                  )}
+                </motion.tbody>
               ))}
             </motion.tbody>
           </table>
+          {filtered.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-sm font-medium text-[#6B7280]">No employees found.</p>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.div>

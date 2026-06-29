@@ -11,11 +11,14 @@ export default function EmployeeProfilePage() {
   const router = useRouter()
   const employeeId = params.id as string
 
-  const { data: queryData, isLoading } = useQuery({
+  const { data: queryData, isLoading, error } = useQuery({
     queryKey: ["employee", employeeId],
     queryFn: async () => {
       const res = await fetch(`/api/employees/${employeeId}`)
-      if (!res.ok) throw new Error("Failed to fetch employee data")
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || body.message || `Request failed (${res.status})`)
+      }
       return res.json()
     },
   })
@@ -27,6 +30,19 @@ export default function EmployeeProfilePage() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
         <IconLoader2 size={32} className="animate-spin text-[#22C55E]" />
         <p className="text-[#6B7280] font-medium text-sm">Loading employee profile...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <div className="bg-[#FEE2E2] text-[#EF4444] p-4 rounded-xl font-medium">
+          {error instanceof Error ? error.message : "Failed to load employee"}
+        </div>
+        <button onClick={() => router.back()} className="text-[#22C55E] hover:underline font-semibold text-sm">
+          Go back
+        </button>
       </div>
     )
   }
@@ -154,16 +170,16 @@ export default function EmployeeProfilePage() {
             </motion.div>
           </motion.div>
 
-          {/* Recent Tasks */}
+          {/* Tasks */}
           <motion.div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6" variants={slideUp}>
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-[#1A202C] flex items-center gap-2">
-                <IconChecklist className="text-[#22C55E]" size={20} /> Recent Tasks
+                <IconChecklist className="text-[#22C55E]" size={20} /> Tasks
               </h2>
             </div>
             
             {emp.tasks?.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-80 overflow-y-auto">
                 {emp.tasks.map((task: any) => (
                   <div key={task.id} className="flex items-center justify-between p-4 rounded-xl border border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
                     <div>
@@ -187,16 +203,16 @@ export default function EmployeeProfilePage() {
             )}
           </motion.div>
 
-          {/* Recent Attendance */}
+          {/* Attendance */}
           <motion.div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6" variants={slideUp}>
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-[#1A202C] flex items-center gap-2">
-                <IconBriefcase className="text-[#3B82F6]" size={20} /> Recent Attendance
+                <IconBriefcase className="text-[#3B82F6]" size={20} /> Attendance
               </h2>
             </div>
             
             {emp.attendance?.length > 0 ? (
-              <div className="overflow-hidden border border-[#F3F4F6] rounded-xl">
+              <div className="overflow-hidden border border-[#F3F4F6] rounded-xl max-h-60 overflow-y-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-[#F9FAFB] border-b border-[#F3F4F6]">
                     <tr>
@@ -208,7 +224,7 @@ export default function EmployeeProfilePage() {
                     {emp.attendance.map((record: any) => (
                       <tr key={record.id} className="hover:bg-[#F9FAFB]/50 transition-colors">
                         <td className="px-4 py-3 font-medium text-[#1A202C]">
-                          {new Date(record.date).toLocaleDateString()}
+                          {new Date(record.date).toLocaleDateString('en-GB')}
                         </td>
                         <td className="px-4 py-3">
                           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
