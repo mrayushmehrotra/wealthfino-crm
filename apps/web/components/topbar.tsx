@@ -5,6 +5,13 @@ import { motion } from "framer-motion"
 import { IconBell, IconMessage, IconSearch } from "@tabler/icons-react"
 import { staggerContainer, fadeIn } from "@/lib/animation-variants"
 import { useQuery } from "@tanstack/react-query"
+import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -59,27 +66,22 @@ export function Topbar() {
   const roleDisplay = user?.role || (isPending ? "..." : "admin")
 
   const todayAttendance = user?.todayAttendance
-  const isOnline = todayAttendance && todayAttendance.checkIn && !todayAttendance.checkOut
+  const hasCheckedIn = !!todayAttendance?.checkIn
+  const showCheckInModal = user?.employee && user?.role !== "ADMIN" && !hasCheckedIn
 
-  const handleToggleStatus = async () => {
-    if (!user?.employee?.id) {
-      console.warn("Cannot toggle status — no employee record linked to this user")
-      return
-    }
+  const [isCheckingIn, setIsCheckingIn] = useState(false)
+
+  const handleCheckIn = async () => {
+    if (!user?.employee?.id) return
+    setIsCheckingIn(true)
 
     const now = new Date().toISOString()
-    interface AttendancePayload { employeeId: number; date: string; status: string; checkIn?: string; checkOut?: string | null }
-    const payload: AttendancePayload = {
+    const payload = {
       employeeId: user.employee.id,
-      date: new Date().toISOString().split("T")[0]!,
-      status: "PRESENT"
-    }
-
-    if (isOnline) {
-      payload.checkOut = now
-    } else {
-      payload.checkIn = now
-      payload.checkOut = null
+      date: now.split("T")[0],
+      status: "PRESENT",
+      checkIn: now,
+      checkOut: null
     }
 
     try {
@@ -88,9 +90,11 @@ export function Topbar() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
-      refetch()
+      await refetch()
     } catch (err) {
-      console.error("Failed to toggle status", err)
+      console.error("Failed to check in", err)
+    } finally {
+      setIsCheckingIn(false)
     }
   }
 
@@ -123,21 +127,26 @@ export function Topbar() {
       </motion.div>
 
         <div className="ml-auto flex items-center gap-2">
-        {user && (
-          <motion.button
-            onClick={handleToggleStatus}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors mr-2 ${
-              isOnline 
-                ? "bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30" 
-                : "bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB]"
-            }`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className={`h-2 w-2 rounded-full ${isOnline ? "bg-[#22C55E] animate-pulse" : "bg-[#9CA3AF]"}`} />
-            {isOnline ? "Online" : "Offline"}
-          </motion.button>
-        )}
+        {/* Check-In Modal overlay */}
+        <Dialog open={showCheckInModal} onOpenChange={() => {}}>
+          <DialogContent className="sm:max-w-[400px] bg-white border border-[#E5E7EB] p-6 text-center [&>button]:hidden">
+            <DialogHeader className="mb-4">
+              <DialogTitle className="text-xl font-bold text-[#1A202C]">Good Morning, {user?.employee?.firstName}!</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-[#6B7280] mb-6">
+              Please mark your attendance for today to continue to your dashboard.
+            </p>
+            <motion.button
+              onClick={handleCheckIn}
+              disabled={isCheckingIn}
+              className="w-full bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50"
+              whileHover={!isCheckingIn ? { scale: 1.02 } : {}}
+              whileTap={!isCheckingIn ? { scale: 0.98 } : {}}
+            >
+              {isCheckingIn ? "Checking In..." : "Check In Now"}
+            </motion.button>
+          </DialogContent>
+        </Dialog>
 
         <motion.button
           className="relative h-9 w-9 rounded-full flex items-center justify-center hover:bg-[#F5F7FA] transition-colors"
