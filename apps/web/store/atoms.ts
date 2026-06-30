@@ -1,21 +1,8 @@
-import { atom } from "recoil"
+"use client"
 
-export const calendarMonthState = atom<number>({
-  key: "calendarMonthState",
-  default: new Date().getMonth(),
-})
+import { atom } from "jotai"
 
-export const calendarYearState = atom<number>({
-  key: "calendarYearState",
-  default: new Date().getFullYear(),
-})
-
-export const calendarSelectedEmployeeIdState = atom<string>({
-  key: "calendarSelectedEmployeeIdState",
-  default: "",
-})
-
-export const calendarSelectedDayState = atom<number | null>({
-  key: "calendarSelectedDayState",
-  default: null,
-})
+export const calendarMonthState = atom<number>(new Date().getMonth())
+export const calendarYearState = atom<number>(new Date().getFullYear())
+export const calendarSelectedEmployeeIdState = atom<string>("")
+export const calendarSelectedDayState = atom<number | null>(null)

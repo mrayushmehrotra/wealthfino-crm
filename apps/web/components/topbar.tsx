@@ -89,7 +89,7 @@ export function Topbar() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<Array<{ id: number; name: string; email: string; phone: string | null; department: string | null; salary: number | null }>>([])
   const [searching, setSearching] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const router = useRouter()
 
   useEffect(() => {

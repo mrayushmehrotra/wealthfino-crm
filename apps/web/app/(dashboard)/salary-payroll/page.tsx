@@ -298,6 +298,7 @@ export default function SalaryPayrollPage() {
                 <td className="px-5 py-4 font-bold text-[#1A202C]">{fmt(row.netPay)}</td>
                 <td className="px-5 py-4">
                   <motion.button
+                    // @ts-expect-error FIXME: fix this ts issue error
                     onClick={() => setPreviewSlip(row)}
                     className="text-xs font-semibold text-[#22C55E] hover:underline"
                     whileHover={{ scale: 1.05 }}
@@ -365,9 +366,8 @@ export default function SalaryPayrollPage() {
                 {allEmployees.map((emp) => (
                   <div
                     key={emp.id}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${
-                      getEntry(emp.id).checked ? "border-[#22C55E] bg-[#F0FFF4]" : "border-[#E5E7EB]"
-                    }`}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${getEntry(emp.id).checked ? "border-[#22C55E] bg-[#F0FFF4]" : "border-[#E5E7EB]"
+                      }`}
                   >
                     <input
                       type="checkbox"

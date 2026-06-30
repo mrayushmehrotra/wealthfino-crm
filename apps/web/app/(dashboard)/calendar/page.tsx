@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { useRecoilState } from "recoil"
+import { useAtom } from "jotai"
 import { calendarMonthState, calendarYearState, calendarSelectedEmployeeIdState, calendarSelectedDayState } from "@/store/atoms"
 import { motion } from "framer-motion"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
@@ -30,10 +30,10 @@ function getDayColor(total: number, completed: number): { bg: string; text: stri
 
 export default function CalendarPage() {
   const now = new Date()
-  const [month, setMonth] = useRecoilState(calendarMonthState)
-  const [year, setYear] = useRecoilState(calendarYearState)
-  const [selectedEmployeeId, setSelectedEmployeeId] = useRecoilState(calendarSelectedEmployeeIdState)
-  const [selectedDay, setSelectedDay] = useRecoilState(calendarSelectedDayState)
+  const [month, setMonth] = useAtom(calendarMonthState)
+  const [year, setYear] = useAtom(calendarYearState)
+  const [selectedEmployeeId, setSelectedEmployeeId] = useAtom(calendarSelectedEmployeeIdState)
+  const [selectedDay, setSelectedDay] = useAtom(calendarSelectedDayState)
 
   const { data: meData } = useQuery({
     queryKey: ["calendarMe"],
