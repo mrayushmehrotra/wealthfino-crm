@@ -70,17 +70,15 @@ export async function POST(request: Request) {
   if (selected && selected.length > 0) {
     const ids = selected.map((s) => s.employeeId);
     employees = await prisma.employee.findMany({
-      where: { id: { in: ids }, salary: { not: null } },
+      where: { id: { in: ids } },
     });
   } else {
-    employees = await prisma.employee.findMany({
-      where: { salary: { not: null } },
-    });
+    employees = await prisma.employee.findMany();
   }
 
   const results = [];
   for (const emp of employees) {
-    const basic = Number(emp.salary);
+    const basic = Number(emp.salary ?? 0);
     const sel = selected?.find((s) => s.employeeId === emp.id);
     const bonus = sel?.bonus ?? Number(emp.bonus ?? 0);
     const allowances = Math.round(basic * 0.1 * 100) / 100;

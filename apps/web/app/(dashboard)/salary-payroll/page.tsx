@@ -2,9 +2,9 @@
 
 import { motion, AnimatePresence } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { fadeInUp, staggerContainer, slideUp, staggerFast } from "@/lib/animation-variants"
-import jsPDF from "jspdf"
+import { IconPrinter } from "@tabler/icons-react"
 
 const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`
 
@@ -13,100 +13,50 @@ const now = new Date()
 const defaultMonth = now.getMonth() + 1
 const defaultYear = now.getFullYear()
 
-function downloadPDF(row: { name: string; role: string; department: string | null; basic: number; allowances: number; deductions: number; bonus: number; netPay: number; month: number; year: number }) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" })
-  const pageW = 190
-  let y = 20
-
-  doc.setFontSize(16)
-  doc.setFont("helvetica", "bold")
-  doc.text("WealthFino", pageW / 2, y, { align: "center" })
-  y += 6
-  doc.setFontSize(10)
-  doc.setFont("helvetica", "normal")
-  doc.text("Salary Slip", pageW / 2, y, { align: "center" })
-  y += 8
-
-  doc.setDrawColor(34, 197, 94)
-  doc.setLineWidth(0.8)
-  doc.line(10, y, pageW + 10, y)
-  y += 6
-
+function generateSlipHTML(row: { name: string; role: string; department: string | null; basic: number; allowances: number; deductions: number; bonus: number; netPay: number; month: number; year: number }) {
   const period = `${MONTHS[row.month - 1]} ${row.year}`
-  doc.setFontSize(10)
-  doc.setFont("helvetica", "bold")
-  doc.text(`Period: ${period}`, 10, y)
-  doc.setFont("helvetica", "normal")
-  doc.text(`Generated: ${new Date().toLocaleDateString("en-GB")}`, pageW / 2 + 10, y, { align: "right" })
-  y += 10
-
-  doc.setFont("helvetica", "bold")
-  doc.text("Employee Details", 10, y)
-  y += 6
-  doc.setFont("helvetica", "normal")
-  doc.setFontSize(9)
-  const details = [
-    [`Name: ${row.name}`, `Role: ${row.role}`],
-    [`Department: ${row.department || "N/A"}`, `Payslip ID: #${Math.random().toString(36).slice(2, 8).toUpperCase()}`],
+  const lines: [string, string][] = [
+    ["Basic Salary", fmt(row.basic)],
+    ["Allowances", fmt(row.allowances)],
   ]
-  for (const [left, right] of details) {
-    doc.text(left, 15, y)
-    doc.text(right, pageW / 2 + 10, y, { align: "right" })
-    y += 5
-  }
-  y += 4
+  if (row.bonus > 0) lines.push(["Bonus", fmt(row.bonus)])
+  lines.push(["Deductions", `- ${fmt(row.deductions)}`])
+  const rowsHTML = lines.map(([l, v]) =>
+    `<tr><td style="padding:8px 12px;border-bottom:1px solid #E5E7EB;font-size:13px;color:#374151">${l}</td><td style="padding:8px 12px;border-bottom:1px solid #E5E7EB;font-size:13px;color:#374151;text-align:right;font-weight:600">${v}</td></tr>`
+  ).join("")
 
-  doc.setDrawColor(200)
-  doc.setLineWidth(0.3)
-  doc.line(10, y, pageW + 10, y)
-  y += 6
-
-  doc.setFont("helvetica", "bold")
-  doc.setFontSize(10)
-  doc.text("Earnings", 10, y)
-  doc.text("Amount", pageW + 10, y, { align: "right" })
-  y += 6
-  doc.setFont("helvetica", "normal")
-  doc.setFontSize(9)
-
-  const earningsRows: [string, number][] = [
-    ["Basic Salary", row.basic],
-    ["Allowances", row.allowances],
-  ]
-  if (row.bonus > 0) {
-    earningsRows.push(["Bonus", row.bonus])
-  }
-  earningsRows.push(["Deductions", -row.deductions])
-
-  for (const [label, amount] of earningsRows) {
-    doc.text(label, 15, y)
-    doc.text(`${amount >= 0 ? "" : "-"}${fmt(Math.abs(amount))}`, pageW + 10, y, { align: "right" })
-    y += 5.5
-  }
-
-  y += 2
-  doc.setDrawColor(200)
-  doc.setLineWidth(0.3)
-  doc.line(10, y, pageW + 10, y)
-  y += 5
-
-  doc.setFont("helvetica", "bold")
-  doc.setFontSize(11)
-  doc.text("Net Pay", 10, y)
-  doc.text(fmt(row.netPay), pageW + 10, y, { align: "right" })
-  y += 8
-
-  doc.setDrawColor(34, 197, 94)
-  doc.setLineWidth(0.8)
-  doc.line(10, y, pageW + 10, y)
-  y += 10
-
-  doc.setFontSize(8)
-  doc.setFont("helvetica", "normal")
-  doc.setTextColor(128)
-  doc.text("This is a computer-generated salary slip.", pageW / 2, y, { align: "center" })
-
-  doc.save(`salary-slip-${row.name.replace(/\s+/g, "-")}-${period.replace(/\s+/g, "-")}.pdf`)
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Salary Slip - ${row.name}</title><style>
+    @page { margin: 15mm }
+    body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; color: #1A202C }
+    .slip { max-width: 700px; margin: 0 auto; padding: 32px }
+    .header { text-align: center }
+    .header h1 { font-size: 22px; margin: 0; color: #1A202C }
+    .header p { font-size: 13px; margin: 4px 0 0; color: #6B7280 }
+    .divider { border: none; border-top: 3px solid #22C55E; margin: 16px 0 }
+    .info-grid { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 16px }
+    .info-grid div { color: #374151 }
+    .info-grid strong { color: #1A202C }
+    .section-title { font-size: 14px; font-weight: 700; color: #1A202C; margin: 0 0 8px }
+    table { width: 100%; border-collapse: collapse }
+    th { text-align: left; padding: 8px 12px; font-size: 12px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #E5E7EB }
+    th:last-child { text-align: right }
+    .net-row td { padding: 10px 12px; font-size: 15px; font-weight: 700; color: #1A202C; border-top: 2px solid #22C55E }
+    .net-row td:last-child { text-align: right; color: #22C55E }
+    .footer { text-align: center; font-size: 11px; color: #9CA3AF; margin-top: 24px }
+  </style></head><body>
+  <div class="slip">
+    <div class="header"><h1>WealthFino</h1><p>Salary Slip — ${period}</p></div>
+    <hr class="divider">
+    <div class="info-grid">
+      <div><strong>Name:</strong> ${row.name}<br><strong>Role:</strong> ${row.role}</div>
+      <div style="text-align:right"><strong>Department:</strong> ${row.department || "N/A"}<br><strong>Payslip ID:</strong> #${Math.random().toString(36).slice(2, 8).toUpperCase()}</div>
+    </div>
+    <p class="section-title">Earnings</p>
+    <table><thead><tr><th>Component</th><th>Amount</th></tr></thead><tbody>${rowsHTML}</tbody></table>
+    <table><tr class="net-row"><td>Net Pay</td><td>${fmt(row.netPay)}</td></tr></table>
+    <hr class="divider">
+    <div class="footer">This is a computer-generated salary slip.</div>
+  </div></body></html>`
 }
 
 export default function SalaryPayrollPage() {
@@ -116,6 +66,12 @@ export default function SalaryPayrollPage() {
   const [generateError, setGenerateError] = useState("")
   const [generateSuccess, setGenerateSuccess] = useState("")
   const [showModal, setShowModal] = useState(false)
+  const [previewSlip, setPreviewSlip] = useState<{
+    name: string; role: string; department: string | null;
+    basic: number; allowances: number; deductions: number; bonus: number; netPay: number;
+    month: number; year: number
+  } | null>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const { data: userData } = useQuery({
     queryKey: ["userProfile"],
@@ -170,36 +126,44 @@ export default function SalaryPayrollPage() {
   }
 
   const PAYROLL: PayrollRow[] = queryData?.data || []
-  const allEmployees: EmployeeItem[] = (employeesData?.data || []).filter((e: EmployeeItem) => e.salary != null)
+  const allEmployees: EmployeeItem[] = employeesData?.data || []
 
-  const [selected, setSelected] = useState<Record<number, { bonus: string }>>({})
+  const [selected, setSelected] = useState<Record<number, { checked: boolean; bonus: string }>>({})
+
+  const getEntry = (id: number) => selected[id] ?? { checked: true, bonus: "" }
 
   const openModal = () => {
     setShowModal(true)
     setGenerateError("")
     setGenerateSuccess("")
-    const initial: Record<number, { bonus: string }> = {}
-    for (const emp of allEmployees) {
-      initial[emp.id] = { bonus: "" }
-    }
-    setSelected(initial)
+  }
+
+  const toggleEmployee = (id: number) => {
+    const current = getEntry(id)
+    setSelected((prev) => ({
+      ...prev,
+      [id]: { ...current, checked: !current.checked },
+    }))
   }
 
   const setBonus = (id: number, bonus: string) => {
+    const current = getEntry(id)
     setSelected((prev) => ({
       ...prev,
-      [id]: { bonus },
+      [id]: { ...current, bonus },
     }))
   }
 
   const handleGenerate = async () => {
-    const employeeList = Object.entries(selected).map(([id, v]) => ({
-      employeeId: Number(id),
-      bonus: v.bonus ? parseFloat(v.bonus) : undefined,
-    }))
+    const checked = allEmployees
+      .filter((e) => getEntry(e.id).checked)
+      .map((e) => ({
+        employeeId: e.id,
+        bonus: getEntry(e.id).bonus ? parseFloat(getEntry(e.id).bonus) : undefined,
+      }))
 
-    if (employeeList.length === 0) {
-      setGenerateError("No employees with salary found.")
+    if (checked.length === 0) {
+      setGenerateError("Select at least one employee.")
       return
     }
 
@@ -210,7 +174,7 @@ export default function SalaryPayrollPage() {
       const res = await fetch("/api/payroll", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ month, year, employees: employeeList }),
+        body: JSON.stringify({ month, year, employees: checked }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -224,6 +188,12 @@ export default function SalaryPayrollPage() {
     } finally {
       setGenerating(false)
     }
+  }
+
+  const handleDownloadPDF = () => {
+    if (!iframeRef.current?.contentWindow) return
+    iframeRef.current.contentWindow.focus()
+    iframeRef.current.contentWindow.print()
   }
 
   return (
@@ -328,12 +298,12 @@ export default function SalaryPayrollPage() {
                 <td className="px-5 py-4 font-bold text-[#1A202C]">{fmt(row.netPay)}</td>
                 <td className="px-5 py-4">
                   <motion.button
-                    onClick={() => downloadPDF({ ...row, month, year })}
+                    onClick={() => setPreviewSlip(row)}
                     className="text-xs font-semibold text-[#22C55E] hover:underline"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    Download
+                    View Slip
                   </motion.button>
                 </td>
               </motion.tr>
@@ -349,6 +319,7 @@ export default function SalaryPayrollPage() {
         </table>
       </motion.div>
 
+      {/* Generate Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -368,12 +339,42 @@ export default function SalaryPayrollPage() {
                 <button onClick={() => setShowModal(false)} className="text-[#6B7280] hover:text-[#1A202C] text-xl leading-none">&times;</button>
               </div>
 
+              <div className="px-6 py-3 border-b border-[#E5E7EB] flex items-center gap-3 text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={allEmployees.length > 0 && allEmployees.every((e) => getEntry(e.id).checked)}
+                    onChange={() => {
+                      const all = allEmployees.every((e) => getEntry(e.id).checked)
+                      const next: Record<number, { checked: boolean; bonus: string }> = {}
+                      for (const emp of allEmployees) {
+                        next[emp.id] = { ...getEntry(emp.id), checked: !all }
+                      }
+                      setSelected(next)
+                    }}
+                    className="w-4 h-4 accent-[#22C55E]"
+                  />
+                  <span className="font-medium text-[#1A202C]">Select All</span>
+                </label>
+                <span className="text-[#6B7280]">
+                  {allEmployees.filter((e) => getEntry(e.id).checked).length} / {allEmployees.length} selected
+                </span>
+              </div>
+
               <div className="flex-1 overflow-y-auto px-6 py-3 space-y-2">
                 {allEmployees.map((emp) => (
                   <div
                     key={emp.id}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-[#E5E7EB]"
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${
+                      getEntry(emp.id).checked ? "border-[#22C55E] bg-[#F0FFF4]" : "border-[#E5E7EB]"
+                    }`}
                   >
+                    <input
+                      type="checkbox"
+                      checked={getEntry(emp.id).checked}
+                      onChange={() => toggleEmployee(emp.id)}
+                      className="w-4 h-4 accent-[#22C55E]"
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[#1A202C]">{emp.firstName} {emp.lastName}</p>
                       <p className="text-xs text-[#6B7280]">{emp.department || "N/A"} — {emp.salary != null ? fmt(Number(emp.salary)) : "N/A"}</p>
@@ -383,7 +384,7 @@ export default function SalaryPayrollPage() {
                       <input
                         type="number"
                         placeholder="0"
-                        value={selected[emp.id]?.bonus || ""}
+                        value={getEntry(emp.id).bonus}
                         onChange={(e) => setBonus(emp.id, e.target.value)}
                         className="w-28 px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
                       />
@@ -406,8 +407,51 @@ export default function SalaryPayrollPage() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  {generating ? "Generating..." : "Generate All"}
+                  {generating ? "Generating..." : `Generate (${allEmployees.filter((e) => getEntry(e.id).checked).length})`}
                 </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Slip Preview Modal */}
+      <AnimatePresence>
+        {previewSlip && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 flex flex-col"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
+                <h2 className="text-lg font-bold text-[#1A202C]">Salary Slip — {previewSlip.name}</h2>
+                <button onClick={() => setPreviewSlip(null)} className="text-[#6B7280] hover:text-[#1A202C] text-xl leading-none">&times;</button>
+              </div>
+              <div className="p-4 bg-[#F9FAFB]">
+                <motion.button
+                  onClick={handleDownloadPDF}
+                  className="flex items-center gap-2 bg-[#22C55E] hover:bg-[#16A34A] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <IconPrinter size={16} />
+                  Download PDF
+                </motion.button>
+              </div>
+              <div className="flex-1 p-4 pt-0 max-h-[70vh]">
+                <iframe
+                  ref={iframeRef}
+                  srcDoc={generateSlipHTML({ ...previewSlip, month, year })}
+                  className="w-full h-full rounded-lg border border-[#E5E7EB] bg-white"
+                  title="Salary Slip"
+                />
               </div>
             </motion.div>
           </motion.div>
