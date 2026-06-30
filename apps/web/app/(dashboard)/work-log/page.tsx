@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { motion } from "framer-motion"
-import { IconChevronLeft, IconChevronRight, IconCheck, IconLoader2, IconBriefcase, IconCloudUpload } from "@tabler/icons-react"
+import { IconChevronLeft, IconChevronRight, IconCheck, IconLoader2, IconBriefcase, IconCloudUpload, IconDownload } from "@tabler/icons-react"
 import { useSetAtom } from "jotai"
 import { workLogAtom } from "@/store/atoms"
 import {
@@ -183,22 +183,47 @@ export default function WorkLogPage() {
           </p>
         </div>
         
-        <button
-          onClick={syncToDatabase}
-          disabled={savingState === "saving"}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-            savingState === "saved" ? "bg-green-100 text-green-700" :
-            savingState === "error" ? "bg-red-100 text-red-700" :
-            "bg-[#22C55E] hover:bg-[#16A34A] text-white"
-          }`}
-        >
-          {savingState === "saving" ? <IconLoader2 size={16} className="animate-spin" /> : 
-           savingState === "saved" ? <IconCheck size={16} /> :
-           <IconCloudUpload size={16} />}
-          {savingState === "saving" ? "Syncing..." : 
-           savingState === "saved" ? "Synced" : 
-           "Force Sync to DB"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const rows = [["Date", "Hour", "Time Range", "Task", "Status"]]
+              const dateLabel = date.toLocaleDateString("en-GB")
+              for (const hour of WORK_HOURS) {
+                const entry = logs[hour]
+                rows.push([dateLabel, `${hour}:00`, `${formatHour(hour)} - ${formatHour(hour + 1)}`, entry?.task || "", entry?.status || "Not Yet Started"])
+              }
+              const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n")
+              const blob = new Blob([csv], { type: "text/csv" })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement("a")
+              a.href = url
+              a.download = `work-log-${dateStr}.csv`
+              a.click()
+              URL.revokeObjectURL(url)
+            }}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[#E5E7EB] text-sm font-semibold text-[#6B7280] hover:bg-[#F9FAFB] transition-colors"
+          >
+            <IconDownload size={16} />
+            CSV
+          </button>
+
+          <button
+            onClick={syncToDatabase}
+            disabled={savingState === "saving"}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              savingState === "saved" ? "bg-green-100 text-green-700" :
+              savingState === "error" ? "bg-red-100 text-red-700" :
+              "bg-[#22C55E] hover:bg-[#16A34A] text-white"
+            }`}
+          >
+            {savingState === "saving" ? <IconLoader2 size={16} className="animate-spin" /> : 
+             savingState === "saved" ? <IconCheck size={16} /> :
+             <IconCloudUpload size={16} />}
+            {savingState === "saving" ? "Syncing..." : 
+             savingState === "saved" ? "Synced" : 
+             "Force Sync to DB"}
+          </button>
+        </div>
       </motion.div>
 
       <motion.div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden" variants={fadeInUp}>

@@ -12,7 +12,8 @@ import {
 
 
 export default function DailyReportsPage() {
-  const { data: REPORTS } = useReports()
+  const { data: reportsData } = useReports()
+  const REPORTS = reportsData?.reports || []
 
   return (
     <motion.div

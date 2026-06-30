@@ -23,6 +23,17 @@ After the user checks in, provide a "check-out" button that stores the check-out
 
 [] - (This entire process must be approved by the admin in the end; only then will the backend allow the employee to download the salary slip.)
 If employees want to download an old salary slip, add a date picker and search the backend for that salary slip date. If it exists, allow the employee to download the PDF.
+the name `request` is defined multiple times
+./apps/web/app/api/payroll/requests/route.ts (95:9)
+
+the name `request` is defined multiple times
+  93 |   }
+  94 |
+> 95 |   const request = await prisma.payrollDownloadRequest.create({
+     |         ^^^^^^^
+  96 |     data: {
+  97 |       payrollId: Number(payrollId),
+  98 |       employeeId: employee.id,
 
  <!-- INFO: do this later -->
 

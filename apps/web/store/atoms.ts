@@ -220,7 +220,30 @@ export interface Report {
   summary: string | null
 }
 
-export const reportsAtom = atom<Report[]>([])
+export interface EmployeeStat {
+  employeeId: number
+  name: string
+  department: string | null
+  attendancePercent: number
+  tasksCompleted: number
+  tasksTotal: number
+  productivity: number
+}
+
+export interface ReportsResponse {
+  reports: Report[]
+  role: string
+  stats: {
+    totalEmployees: number
+    avgAttendance: number
+    tasksCompleted: number
+    tasksTotal: number
+    avgProductivity: number
+  }
+  employeeStats: EmployeeStat[]
+}
+
+export const reportsAtom = atom<ReportsResponse | null>(null)
 
 // ─── Documents ────────────────────────────────────────────────────────────
 export interface Document {
