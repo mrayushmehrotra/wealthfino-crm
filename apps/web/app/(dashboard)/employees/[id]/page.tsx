@@ -1,9 +1,12 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
+import { useSetAtom } from "jotai"
+import { employeeDetailIdAtom } from "@/store/atoms"
+import { useEmployeeDetail } from "@/hooks/use-data"
 import { useParams, useRouter } from "next/navigation"
-import { IconArrowLeft, IconMail, IconPhone, IconBriefcase, IconCalendar, IconChecklist, IconLoader2, IconUserCheck, IconBuildingBank } from "@tabler/icons-react"
+import { useEffect } from "react"
+import { IconArrowLeft, IconMail, IconPhone, IconBriefcase, IconCalendar, IconChecklist, IconLoader2, IconUserCheck, IconBuildingBank, IconCashBanknote, IconFileReport, IconChartLine } from "@tabler/icons-react"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
 
 export default function EmployeeProfilePage() {
@@ -11,19 +14,11 @@ export default function EmployeeProfilePage() {
   const router = useRouter()
   const employeeId = params.id as string
 
-  const { data: queryData, isLoading, error } = useQuery({
-    queryKey: ["employee", employeeId],
-    queryFn: async () => {
-      const res = await fetch(`/api/employees/${employeeId}`)
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error || body.message || `Request failed (${res.status})`)
-      }
-      return res.json()
-    },
-  })
+  const setEmployeeDetailId = useSetAtom(employeeDetailIdAtom)
 
-  const emp = queryData?.data
+  useEffect(() => { setEmployeeDetailId(Number(employeeId)) }, [employeeId, setEmployeeDetailId])
+
+  const { data: emp, isPending: isLoading, error } = useEmployeeDetail()
 
   if (isLoading) {
     return (
@@ -242,6 +237,122 @@ export default function EmployeeProfilePage() {
             ) : (
               <div className="text-center py-8 bg-[#F9FAFB] rounded-xl border border-dashed border-[#E5E7EB]">
                 <p className="text-sm font-medium text-[#6B7280]">No attendance records found.</p>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Leaves */}
+          <motion.div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6" variants={slideUp}>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-bold text-[#1A202C] flex items-center gap-2">
+                <IconCalendar className="text-[#8B5CF6]" size={20} /> Leave Requests
+              </h2>
+            </div>
+            
+            {emp.leaveRequests?.length > 0 ? (
+              <div className="space-y-3 max-h-80 overflow-y-auto">
+                {emp.leaveRequests.map((leave: any) => (
+                  <div key={leave.id} className="flex flex-col p-4 rounded-xl border border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-[#1A202C]">{leave.type} Leave</p>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                        leave.status === "APPROVED" ? "bg-[#DCFCE7] text-[#22C55E]" : 
+                        leave.status === "REJECTED" ? "bg-[#FEE2E2] text-[#EF4444]" : 
+                        "bg-[#FEF3C7] text-[#F59E0B]"
+                      }`}>
+                        {leave.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#6B7280] mt-1">
+                      {new Date(leave.fromDate).toLocaleDateString('en-GB')} to {new Date(leave.toDate).toLocaleDateString('en-GB')} ({leave.days} days)
+                    </p>
+                    {leave.reason && (
+                      <p className="text-xs text-[#6B7280] mt-2 italic border-l-2 border-[#E5E7EB] pl-2">{leave.reason}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-[#F9FAFB] rounded-xl border border-dashed border-[#E5E7EB]">
+                <p className="text-sm font-medium text-[#6B7280]">No leave records found.</p>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Payroll */}
+          <motion.div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6" variants={slideUp}>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-bold text-[#1A202C] flex items-center gap-2">
+                <IconCashBanknote className="text-[#F59E0B]" size={20} /> Payroll
+              </h2>
+            </div>
+            
+            {emp.payroll?.length > 0 ? (
+              <div className="overflow-hidden border border-[#F3F4F6] rounded-xl max-h-60 overflow-y-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-[#F9FAFB] border-b border-[#F3F4F6]">
+                    <tr>
+                      <th className="px-4 py-3 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Month/Year</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Net Pay</th>
+                      <th className="px-4 py-3 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F3F4F6]">
+                    {emp.payroll.map((pay: any) => (
+                      <tr key={pay.id} className="hover:bg-[#F9FAFB]/50 transition-colors">
+                        <td className="px-4 py-3 font-medium text-[#1A202C]">
+                          {new Date(pay.year, pay.month).toLocaleString('default', { month: 'short' })} {pay.year}
+                        </td>
+                        <td className="px-4 py-3 font-bold text-[#22C55E]">
+                          ₹{Number(pay.netPay).toLocaleString('en-IN')}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                            pay.status === "PAID" ? "bg-[#DCFCE7] text-[#22C55E]" : 
+                            "bg-[#FEF3C7] text-[#F59E0B]"
+                          }`}>
+                            {pay.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-[#F9FAFB] rounded-xl border border-dashed border-[#E5E7EB]">
+                <p className="text-sm font-medium text-[#6B7280]">No payroll records found.</p>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Daily Reports */}
+          <motion.div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6" variants={slideUp}>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-bold text-[#1A202C] flex items-center gap-2">
+                <IconFileReport className="text-[#EC4899]" size={20} /> Daily Reports & Analysis
+              </h2>
+            </div>
+            
+            {emp.dailyReports?.length > 0 ? (
+              <div className="space-y-3 max-h-80 overflow-y-auto">
+                {emp.dailyReports.map((report: any) => (
+                  <div key={report.id} className="flex flex-col p-4 rounded-xl border border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-[#1A202C]">
+                        {new Date(report.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                      </p>
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#EFF6FF] text-[#3B82F6] uppercase tracking-wider">
+                        {report.hoursLogged} hours logged
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#6B7280] mt-2 whitespace-pre-line">{report.summary}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-[#F9FAFB] rounded-xl border border-dashed border-[#E5E7EB]">
+                <p className="text-sm font-medium text-[#6B7280]">No daily reports submitted.</p>
               </div>
             )}
           </motion.div>

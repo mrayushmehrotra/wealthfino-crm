@@ -75,6 +75,7 @@ export async function GET() {
       bonus: e.bonus ? Number(e.bonus) : 0,
       department: e.department,
       designation: e.designation,
+      image: e.image,
       joinedAt: e.joinedAt,
       updatedAt: e.updatedAt,
       lastIp: e.lastIp,

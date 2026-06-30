@@ -3,7 +3,8 @@
 import { motion } from "framer-motion"
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
-import { IconPlus, IconSearch, IconChevronDown, IconMail, IconPhone, IconCalendar, IconUserCheck, IconId, IconCash, IconReportAnalytics } from "@tabler/icons-react"
+import { useRouter } from "next/navigation"
+import { IconPlus, IconSearch, IconChevronDown, IconMail, IconPhone, IconCalendar, IconUserCheck, IconId, IconCash, IconReportAnalytics, IconEye } from "@tabler/icons-react"
 import {
   fadeInUp,
   staggerContainer,
@@ -24,6 +25,7 @@ interface Employee {
   bonus: number
   department: string | null
   designation: string | null
+  image: string | null
   joinedAt: string
   updatedAt: string | null
   location: string | null
@@ -37,6 +39,7 @@ interface Employee {
 }
 
 export default function EmployeesPage() {
+  const router = useRouter()
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -127,6 +130,7 @@ export default function EmployeesPage() {
                 <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Status</th>
                 <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Joined</th>
                 <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Location</th>
+                <th className="text-right text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Action</th>
               </tr>
             </thead>
             <motion.tbody className="divide-y divide-[#F3F4F6]" variants={staggerFast}>
@@ -146,8 +150,12 @@ export default function EmployeesPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-[#DCFCE7] flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-[#22C55E]">{initials(emp)}</span>
+                        <div className="h-8 w-8 rounded-full bg-[#DCFCE7] flex items-center justify-center shrink-0 overflow-hidden">
+                          {emp.image ? (
+                            <img src={emp.image} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="text-xs font-bold text-[#22C55E]">{initials(emp)}</span>
+                          )}
                         </div>
                         <div className="min-w-0">
                           <span className="font-medium text-[#1A202C] block">{emp.firstName} {emp.lastName}</span>
@@ -167,10 +175,19 @@ export default function EmployeesPage() {
                     </td>
                     <td className="px-5 py-4 text-[#6B7280]">{formatDate(emp.joinedAt)}</td>
                     <td className="px-5 py-4 text-[#6B7280] max-w-[140px] truncate">{emp.location || "N/A"}</td>
+                    <td className="px-5 py-4 text-right">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); router.push(`/employees/${emp.id}`) }}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-[#F3F4F6] text-[#6B7280] hover:bg-[#22C55E] hover:text-white transition-colors"
+                      >
+                        <IconEye size={14} />
+                        View
+                      </button>
+                    </td>
                   </tr>
                   {expandedId === emp.id && (
                     <tr>
-                      <td colSpan={7} className="px-6 pb-6 pt-2">
+                      <td colSpan={8} className="px-6 pb-6 pt-2">
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}

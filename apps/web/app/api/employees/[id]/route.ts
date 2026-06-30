@@ -34,6 +34,15 @@ export async function GET(
       attendance: {
         orderBy: { date: "desc" },
       },
+      payroll: {
+        orderBy: { year: "desc", month: "desc" },
+      },
+      leaveRequests: {
+        orderBy: { createdAt: "desc" },
+      },
+      dailyReports: {
+        orderBy: { date: "desc" },
+      },
       _count: {
         select: {
           attendance: true,
