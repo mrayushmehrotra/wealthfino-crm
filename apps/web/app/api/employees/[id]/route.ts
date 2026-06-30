@@ -35,7 +35,7 @@ export async function GET(
         orderBy: { date: "desc" },
       },
       payroll: {
-        orderBy: { year: "desc", month: "desc" },
+        orderBy: [{ year: "desc" }, { month: "desc" }],
       },
       leaveRequests: {
         orderBy: { createdAt: "desc" },
