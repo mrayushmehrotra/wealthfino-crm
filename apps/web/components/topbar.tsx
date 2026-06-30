@@ -77,7 +77,13 @@ export function Topbar() {
     ? new Date(todayAttendance.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
     : null
 
+  const hasCheckedOut = !!todayAttendance?.checkOut
+  const checkOutTime = todayAttendance?.checkOut
+    ? new Date(todayAttendance.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : null
+
   const [isCheckingIn, setIsCheckingIn] = useState(false)
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
 
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -134,6 +140,31 @@ export function Topbar() {
     }
   }
 
+  const handleCheckOut = async () => {
+    if (!user?.employee?.id) return
+    setIsCheckingOut(true)
+
+    const now = new Date().toISOString()
+    const payload = {
+      employeeId: user.employee.id,
+      date: now.split("T")[0],
+      checkOut: now
+    }
+
+    try {
+      await fetch("/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      await refetch()
+    } catch (err) {
+      console.error("Failed to check out", err)
+    } finally {
+      setIsCheckingOut(false)
+    }
+  }
+
   return (
     <motion.header
       className="fixed top-0 right-0 left-[248px] z-40 h-16 bg-white border-b border-[#E5E7EB] flex items-center px-6 gap-4"
@@ -158,9 +189,29 @@ export function Topbar() {
 
       <div className="ml-auto flex items-center gap-2">
         {checkInTime && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30 mr-2">
-            <span className="h-2 w-2 rounded-full bg-[#22C55E] animate-pulse" />
-            <span className="text-xs font-bold uppercase tracking-wider">Check-in: {checkInTime}</span>
+          <div className="flex items-center gap-2 mr-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30">
+              {!hasCheckedOut && <span className="h-2 w-2 rounded-full bg-[#22C55E] animate-pulse" />}
+              <span className="text-xs font-bold uppercase tracking-wider">In: {checkInTime}</span>
+            </div>
+            
+            {hasCheckedOut && checkOutTime && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/30">
+                <span className="text-xs font-bold uppercase tracking-wider">Out: {checkOutTime}</span>
+              </div>
+            )}
+
+            {!hasCheckedOut && user?.employee && !isAdmin && (
+              <motion.button
+                onClick={handleCheckOut}
+                disabled={isCheckingOut}
+                className="text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full bg-[#1A202C] hover:bg-[#374151] text-white transition-colors disabled:opacity-50"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {isCheckingOut ? "..." : "Check Out"}
+              </motion.button>
+            )}
           </div>
         )}
         
