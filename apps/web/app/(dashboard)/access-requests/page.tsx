@@ -2,25 +2,19 @@
 
 import { motion } from "framer-motion"
 import { IconCheck, IconX, IconSearch, IconLoader2 } from "@tabler/icons-react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   fadeInUp,
   staggerContainer,
   slideUp,
   staggerFast,
 } from "@/lib/animation-variants"
+import { useAccessRequests } from "@/hooks/use-data"
 
 export default function AccessRequestsPage() {
   const queryClient = useQueryClient()
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["accessRequests"],
-    queryFn: async () => {
-      const res = await fetch("/api/admin/access-requests")
-      if (!res.ok) throw new Error("Failed to fetch requests")
-      return res.json()
-    },
-  })
+  const { data: requests, refetch, isPending } = useAccessRequests()
 
   const actionMutation = useMutation({
     mutationFn: async ({ id, action }: { id: number; action: "approve" | "reject" }) => {
@@ -34,8 +28,6 @@ export default function AccessRequestsPage() {
       queryClient.invalidateQueries({ queryKey: ["accessRequests"] })
     },
   })
-
-  const requests = data?.data || []
 
   return (
     <motion.div
@@ -81,7 +73,7 @@ export default function AccessRequestsPage() {
               </tr>
             </thead>
             
-            {isLoading ? (
+            {isPending ? (
               <tbody>
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-[#6B7280]">

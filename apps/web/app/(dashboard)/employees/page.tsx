@@ -1,9 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useEmployees } from "@/hooks/use-data"
 import { IconPlus, IconSearch, IconChevronDown, IconMail, IconPhone, IconCalendar, IconUserCheck, IconId, IconCash, IconReportAnalytics, IconEye } from "@tabler/icons-react"
 import {
   fadeInUp,
@@ -43,16 +43,7 @@ export default function EmployeesPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
-  const { data: queryData } = useQuery({
-    queryKey: ["EMPLOYEES"],
-    queryFn: async () => {
-      const res = await fetch("/api/employees")
-      if (!res.ok) return { data: [] }
-      return res.json()
-    },
-  })
-
-  const EMPLOYEES: Employee[] = queryData?.data || []
+  const { data: EMPLOYEES } = useEmployees()
 
   const filtered = EMPLOYEES.filter((emp) => {
     if (!searchQuery) return true

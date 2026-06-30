@@ -1,9 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
 import { IconCalendar, IconPlus } from "@tabler/icons-react"
 import { useState, useEffect } from "react"
+import { useAuth, useLeave } from "@/hooks/use-data"
 import {
   fadeInUp,
   staggerContainer,
@@ -37,13 +37,7 @@ export default function LeaveManagementPage() {
     days: 1,
     reason: ""
   })
-  const { data: userProfile } = useQuery({
-    queryKey: ["sidebarProfile"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/me")
-      return res.json()
-    },
-  })
+  const { data: user } = useAuth()
   
   // Auto-calculate days when dates change
   useEffect(() => {
@@ -64,19 +58,12 @@ export default function LeaveManagementPage() {
     }
   }, [leaveForm.fromDate, leaveForm.toDate])
 
-  const isAdmin = userProfile?.data?.role === "ADMIN"
+  const isAdmin = user?.role === "ADMIN"
 
-  const { data: queryData, refetch } = useQuery({
-    queryKey: ["LEAVES"],
-    queryFn: async () => {
-      const res = await fetch("/api/leave")
-      if (!res.ok) throw new Error("Failed to fetch")
-      return res.json()
-    },
-  })
+  const { data: leaveData, refetch } = useLeave()
   
-  const stats = queryData?.data?.stats || { total: 0, pending: 0, approved: 0, rejected: 0 }
-  const LEAVES = queryData?.data?.requests || []
+  const stats = leaveData?.stats || { total: 0, pending: 0, approved: 0, rejected: 0 }
+  const LEAVES = leaveData?.requests || []
 
   const handleStatusUpdate = async (leaveId: number, status: "APPROVED" | "REJECTED") => {
     try {
@@ -93,14 +80,14 @@ export default function LeaveManagementPage() {
 
   const handleApplyLeave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!userProfile?.data?.employee?.id) return
+    if (!user?.employee?.id) return
 
     try {
       await fetch("/api/leave", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          employeeId: userProfile.data.employee.id,
+          employeeId: user.employee.id,
           ...leaveForm
         })
       })

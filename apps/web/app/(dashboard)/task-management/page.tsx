@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
+import { useTasks, useEmployees } from "@/hooks/use-data"
 import { IconPlus, IconPlayerPlay, IconCheck, IconPlayerStop, IconCalendar } from "@tabler/icons-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { Calendar } from "@workspace/ui/components/calendar"
@@ -37,30 +37,14 @@ export default function TaskManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [formData, setFormData] = useState({ title: "", description: "", employeeId: "", dueDate: "", priority: "MEDIUM" })
 
-  const { data: queryData, refetch } = useQuery({
-    queryKey: ["TASKS"],
-    queryFn: async () => {
-      const res = await fetch("/api/tasks")
-      if (!res.ok) throw new Error("Failed to fetch")
-      return res.json()
-    },
-  })
-  
-  const TASKS = queryData?.data?.tasks || []
-  const stats = queryData?.data?.stats || { total: 0, inProgress: 0, done: 0 }
+  const { data: tasksData, refetch } = useTasks()
+  const { data: employees } = useEmployees()
+
+  const TASKS = tasksData?.tasks || []
+  const stats = tasksData?.stats || { total: 0, inProgress: 0, done: 0 }
   
   // The API directly tells us our role, no secondary queries needed!
-  const isAdmin = queryData?.data?.role === "ADMIN"
-
-  const { data: employeesData } = useQuery({
-    queryKey: ["EMPLOYEES_LIST"],
-    queryFn: async () => {
-      const res = await fetch("/api/employees")
-      return res.json()
-    },
-    enabled: isAdmin,
-  })
-  const employees = employeesData?.data || []
+  const isAdmin = tasksData?.role === "ADMIN"
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault()

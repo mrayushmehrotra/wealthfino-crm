@@ -1,8 +1,8 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
 import { IconCalendarCheck, IconChevronLeft, IconChevronRight } from "@tabler/icons-react"
+import { useAttendance } from "@/hooks/use-data"
 import {
   fadeInUp,
   staggerContainer,
@@ -18,18 +18,10 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 export default function AttendancePage() {
-  const { data: queryData } = useQuery({
-    queryKey: ["ATTENDANCE"],
-    queryFn: async () => {
-      const res = await fetch("/api/attendance")
-      if (!res.ok) throw new Error("Failed to fetch")
-      return res.json()
-    },
-  })
-  
-  const stats = queryData?.data?.stats || { present: 0, absent: 0, onLeave: 0 }
-  const role = queryData?.data?.role || "ADMIN"
-  const ATTENDANCE: { date?: string; employee: { id: number; firstName: string; lastName: string; department: string | null }; attendance: { checkIn: string | null; checkOut: string | null } | null; status: string }[] = queryData?.data?.records || []
+  const { data: attendanceData } = useAttendance()
+  const stats = attendanceData?.stats || { present: 0, absent: 0, onLeave: 0 }
+  const role = attendanceData?.role || "ADMIN"
+  const ATTENDANCE: { date?: string; employee: { id: number; firstName: string; lastName: string; department: string | null }; attendance: { checkIn: string | null; checkOut: string | null } | null; status: string }[] = attendanceData?.records || []
 
   const today = new Date().toLocaleDateString("en-GB", {
     weekday: "long",

@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { motion } from "framer-motion"
 import { IconChevronLeft, IconChevronRight, IconCheck, IconLoader2, IconBriefcase, IconCloudUpload } from "@tabler/icons-react"
+import { useSetAtom } from "jotai"
+import { workLogAtom } from "@/store/atoms"
 import {
   fadeInUp,
   staggerContainer,
@@ -16,6 +18,7 @@ export default function WorkLogPage() {
   const [logs, setLogs] = useState<Record<number, { task: string, status: string }>>({})
   const [savingState, setSavingState] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [isLoading, setIsLoading] = useState(false)
+  const setWorkLog = useSetAtom(workLogAtom)
   
   const dateStr = date.toISOString().split("T")[0]
   const isToday = new Date().toISOString().split("T")[0] === dateStr
@@ -63,6 +66,7 @@ export default function WorkLogPage() {
     } 
 
     setLogs(loadedLogs)
+    setWorkLog(loadedLogs)
     setIsLoading(false)
   }, [dateStr, isToday])
 

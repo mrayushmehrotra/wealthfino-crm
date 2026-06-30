@@ -1,10 +1,10 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
 import { useState, useRef } from "react"
 import { fadeInUp, staggerContainer, slideUp, staggerFast } from "@/lib/animation-variants"
 import { IconPrinter } from "@tabler/icons-react"
+import { useAuth, useEmployees, usePayroll } from "@/hooks/use-data"
 
 const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`
 
@@ -73,35 +73,12 @@ export default function SalaryPayrollPage() {
   } | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
-  const { data: userData } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/me")
-      if (!res.ok) throw new Error("Failed to fetch profile")
-      return res.json()
-    },
-  })
+  const { data: user } = useAuth()
+  const isAdmin = user?.role === "ADMIN"
 
-  const currentUser = userData?.data
-  const isAdmin = currentUser?.role === "ADMIN"
+  const { data: employees } = useEmployees()
 
-  const { data: queryData, refetch } = useQuery({
-    queryKey: ["PAYROLL", month, year],
-    queryFn: async () => {
-      const res = await fetch(`/api/payroll?month=${month}&year=${year}`)
-      if (!res.ok) return { data: [] }
-      return res.json()
-    },
-  })
-
-  const { data: employeesData } = useQuery({
-    queryKey: ["EMPLOYEES"],
-    queryFn: async () => {
-      const res = await fetch("/api/employees")
-      if (!res.ok) return { data: [] }
-      return res.json()
-    },
-  })
+  const { data: payrollData, refetch } = usePayroll(month, year)
 
   type PayrollRow = {
     id: number
@@ -125,8 +102,8 @@ export default function SalaryPayrollPage() {
     salary: number | null
   }
 
-  const PAYROLL: PayrollRow[] = queryData?.data || []
-  const allEmployees: EmployeeItem[] = employeesData?.data || []
+  const PAYROLL: PayrollRow[] = payrollData?.data || []
+  const allEmployees: EmployeeItem[] = employees?.data || []
 
   const [selected, setSelected] = useState<Record<number, { checked: boolean; bonus: string }>>({})
 

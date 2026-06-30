@@ -1,8 +1,8 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
 import { IconPlus, IconFileReport } from "@tabler/icons-react"
+import { useReports } from "@/hooks/use-data"
 import {
   fadeInUp,
   staggerContainer,
@@ -12,16 +12,7 @@ import {
 
 
 export default function DailyReportsPage() {
-  const { data: queryData } = useQuery({
-    queryKey: ["REPORTS"],
-    queryFn: async () => {
-      const res = await fetch("/api/reports")
-      if (!res.ok) return { data: [] }
-      return res.json()
-    },
-  })
-  
-  const REPORTS: Array<{ id: number; name: string; date: string; tasks: number; hours: number; status: string; summary?: string }> = queryData?.data || []
+  const { data: REPORTS } = useReports()
 
   return (
     <motion.div

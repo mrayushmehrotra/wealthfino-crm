@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
+import { useAuth } from "@/hooks/use-data"
 import { useEffect } from "react"
 import {
   IconLayoutDashboard,
@@ -66,22 +66,9 @@ export function Sidebar({
   const pathname = usePathname()
   const router = useRouter()
 
-  const { data: queryData } = useQuery({
-    queryKey: ["sidebarProfile"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/me")
-      if (!res.ok) throw new Error("Failed to fetch profile")
-      return res.json()
-    },
-  })
-
-  const user = queryData?.data
-  const fullName = user?.employee
-    ? `${user.employee.firstName} ${user.employee.lastName}`
-    : "Pending Setup"
-  const initials = user?.employee
-    ? `${user.employee.firstName[0]}${user.employee.lastName[0]}`.toUpperCase()
-    : "??"
+  const { data: user, isPending } = useAuth()
+  const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : (isPending ? "Loading..." : "Pending Setup")
+  const initials = user?.employee ? `${user.employee.firstName[0]}${user.employee.lastName[0]}`.toUpperCase() : "??"
 
   useEffect(() => {
     if (user?.employee) {

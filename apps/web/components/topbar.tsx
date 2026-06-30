@@ -4,8 +4,10 @@ import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { IconBell, IconMessage, IconSearch, IconX, IconLoader2 } from "@tabler/icons-react"
 import { staggerContainer } from "@/lib/animation-variants"
-import { useQuery } from "@tanstack/react-query"
+import { useAuth } from "@/hooks/use-data"
 import { useState, useEffect, useRef } from "react"
+import { useAtom } from "jotai"
+import { searchResultsAtom, searchQueryAtom } from "@/store/atoms"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -52,16 +54,7 @@ export function Topbar() {
   const pathname = usePathname()
   const title = PAGE_TITLES[pathname] ?? "Dashboard"
 
-  const { data: queryData, isPending, refetch } = useQuery({
-    queryKey: ["sidebarProfile"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/me")
-      if (!res.ok) throw new Error("Failed to fetch profile")
-      return res.json()
-    },
-  })
-
-  const user = queryData?.data
+  const { data: user, isPending, refetch } = useAuth()
   const isAdmin = user?.role === "ADMIN"
   const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : (isPending ? "Loading..." : "Admin")
   const firstName = user?.employee?.firstName || ""
@@ -71,7 +64,7 @@ export function Topbar() {
 
   const todayAttendance = user?.todayAttendance
   const hasCheckedIn = !!todayAttendance?.checkIn
-  const showCheckInModal = user?.employee && user?.role !== "ADMIN" && !hasCheckedIn
+  const showCheckInModal: boolean | undefined = !!(user?.employee && user?.role !== "ADMIN" && !hasCheckedIn)
 
   const checkInTime = todayAttendance?.checkIn 
     ? new Date(todayAttendance.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
@@ -86,8 +79,8 @@ export function Topbar() {
   const [isCheckingOut, setIsCheckingOut] = useState(false)
 
   const [searchOpen, setSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<Array<{ id: number; name: string; email: string; phone: string | null; department: string | null; salary: number | null }>>([])
+  const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom)
+  const [searchResults, setSearchResults] = useAtom(searchResultsAtom)
   const [searching, setSearching] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const router = useRouter()

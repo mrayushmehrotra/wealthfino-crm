@@ -1,7 +1,6 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
 import { IconPlus, IconFolder, IconFileTypePdf, IconFileTypeXls, IconFileTypeDoc } from "@tabler/icons-react"
 import type { ElementType } from "react"
 import {
@@ -10,22 +9,13 @@ import {
   slideUp,
   staggerFast,
 } from "@/lib/animation-variants"
-
+import { useDocuments } from "@/hooks/use-data"
 
 const TYPE_ICONS: Record<string, ElementType> = { pdf: IconFileTypePdf, xls: IconFileTypeXls, doc: IconFileTypeDoc }
 const TYPE_COLORS: Record<string, string> = { pdf: "text-[#EF4444] bg-[#FEE2E2]", xls: "text-[#22C55E] bg-[#DCFCE7]", doc: "text-[#3B82F6] bg-[#EFF6FF]" }
 
 export default function DocumentsPage() {
-  const { data: queryData } = useQuery({
-    queryKey: ["DOCS"],
-    queryFn: async () => {
-      const res = await fetch("/api/documents")
-      if (!res.ok) return { data: [] }
-      return res.json()
-    },
-  })
-  
-  const DOCS: Array<{ id: number; name: string; type: string; size: string; uploadedAt: string; category: string; uploaded?: string; by?: string }> = queryData?.data || []
+  const { data: DOCS } = useDocuments()
 
   return (
     <motion.div

@@ -5,7 +5,7 @@ import { useAtom } from "jotai"
 import { calendarMonthState, calendarYearState, calendarSelectedEmployeeIdState, calendarSelectedDayState } from "@/store/atoms"
 import { motion } from "framer-motion"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
-import { useQuery } from "@tanstack/react-query"
+import { useAuth, useCalendarData } from "@/hooks/use-data"
 import {
   Dialog,
   DialogContent,
@@ -35,31 +35,12 @@ export default function CalendarPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useAtom(calendarSelectedEmployeeIdState)
   const [selectedDay, setSelectedDay] = useAtom(calendarSelectedDayState)
 
-  const { data: meData } = useQuery({
-    queryKey: ["calendarMe"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/me")
-      if (!res.ok) throw new Error("Failed to fetch profile")
-      return res.json()
-    },
-  })
+  const { data: user } = useAuth()
+  const role = user?.role
 
-  const role = meData?.data?.role
-
-  const { data: queryData } = useQuery({
-    queryKey: ["calendar", month, year, selectedEmployeeId, role],
-    queryFn: async () => {
-      const params = new URLSearchParams({ month: String(month), year: String(year) })
-      if (selectedEmployeeId) params.set("employeeId", selectedEmployeeId)
-      const res = await fetch(`/api/calendar?${params}`)
-      if (!res.ok) return { data: { days: {}, employees: [], role } }
-      return res.json()
-    },
-    enabled: !!role,
-  })
-
-  const daysData: Record<string, { total: number; completed: number; tasks: Array<{ id: number; title: string; status: string; priority: string }> }> = queryData?.data?.days || {}
-  const employees: Array<{ id: number; firstName: string; lastName: string; department: string | null }> = queryData?.data?.employees || []
+  const { data: calendarData } = useCalendarData(month, year, selectedEmployeeId, role)
+  const daysData: Record<string, { total: number; completed: number; tasks: Array<{ id: number; title: string; status: string; priority: string }> }> = calendarData?.days || {}
+  const employees: Array<{ id: number; firstName: string; lastName: string; department: string | null }> = calendarData?.employees || []
 
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()

@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
+import { usePerformance } from "@/hooks/use-data"
 import {
   LineChart,
   Line,
@@ -49,17 +49,10 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 export default function PerformancePage() {
-  const { data: queryData } = useQuery({
-    queryKey: ["PERFORMANCE"],
-    queryFn: async () => {
-      const res = await fetch("/api/performance")
-      if (!res.ok) return { data: [], chartData: [] }
-      return res.json()
-    },
-  })
+  const { data: perfData } = usePerformance()
   
-  const PERFORMANCE: Array<{ name: string; role: string; tasks: number; completed: number; attendance: string; score: number }> = queryData?.data || []
-  const CHART_DATA = queryData?.chartData || []
+  const PERFORMANCE: Array<{ name: string; role: string; tasks: number; completed: number; attendance: string; score: number }> = perfData?.data || []
+  const CHART_DATA = perfData?.chartData || []
 
   return (
     <motion.div

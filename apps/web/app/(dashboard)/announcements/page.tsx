@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
 import { IconPlus, IconSpeakerphone } from "@tabler/icons-react"
+import { useAuth, useAnnouncements } from "@/hooks/use-data"
 import {
   fadeInUp,
   staggerContainer,
@@ -19,26 +19,10 @@ export default function AnnouncementsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
 
-  const { data: userData } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/me")
-      if (!res.ok) throw new Error("Failed to fetch profile")
-      return res.json()
-    },
-  })
-  const isAdmin = userData?.data?.role === "ADMIN"
+  const { data: user } = useAuth()
+  const isAdmin = user?.role === "ADMIN"
 
-  const { data: queryData, refetch } = useQuery({
-    queryKey: ["ANNOUNCEMENTS"],
-    queryFn: async () => {
-      const res = await fetch("/api/announcements")
-      if (!res.ok) return { data: [] }
-      return res.json()
-    },
-  })
-  
-  const ANNOUNCEMENTS: Array<{ id: number; title: string; content: string; date: string; author: string; type: string; tagColor?: string; tag?: string; body?: string }> = queryData?.data || []
+  const { data: ANNOUNCEMENTS, refetch } = useAnnouncements()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

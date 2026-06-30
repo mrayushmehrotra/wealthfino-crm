@@ -21,8 +21,8 @@ import {
   slideUp,
   progressBar,
 } from "@/lib/animation-variants"
-import { useQuery } from "@tanstack/react-query"
 import { useSearchParams, useRouter } from "next/navigation"
+import { useDashboardStats } from "@/hooks/use-data"
 import { useState, useEffect } from "react"
 
 const QUICK_ACTIONS = [
@@ -65,17 +65,7 @@ export default function DashboardPage() {
     }
   }, [showBlockedBanner, router])
 
-  const { data: statsData, isLoading } = useQuery({
-    queryKey: ["dashboardStats"],
-    queryFn: async () => {
-      const res = await fetch("/api/dashboard/stats")
-      if (!res.ok) throw new Error("Failed to fetch stats")
-      return res.json()
-    },
-    refetchInterval: 5000,
-  })
-
-  const stats = statsData?.data
+  const { data: stats, isLoading } = useDashboardStats()
   const isAdmin = stats?.role === "ADMIN"
   const firstName = stats?.firstName ?? ""
 

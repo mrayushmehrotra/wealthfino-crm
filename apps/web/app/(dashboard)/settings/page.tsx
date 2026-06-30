@@ -1,13 +1,15 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useQuery } from "@tanstack/react-query"
 import { useState, useEffect } from "react"
+import { useAtom } from "jotai"
+import { employeeDetailIdAtom } from "@/store/atoms"
+import { useAuth, useEmployees, useEmployeeDetail } from "@/hooks/use-data"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
 import { IconSearch, IconLoader2, IconDeviceFloppy, IconUser, IconPhoto, IconCalendar, IconChecklist, IconClock, IconCash } from "@tabler/icons-react"
 
 export default function SettingsPage() {
-  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [selectedId, setSelectedId] = useAtom(employeeDetailIdAtom)
   const [searchQuery, setSearchQuery] = useState("")
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState("")
@@ -26,35 +28,16 @@ export default function SettingsPage() {
     image: "",
   })
 
-  const { data: userData } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: async () => {
-      const res = await fetch("/api/auth/me")
-      if (!res.ok) throw new Error("Failed to fetch profile")
-      return res.json()
-    },
-  })
+  const { data: user } = useAuth()
+  const isAdmin = user?.role === "ADMIN"
 
-  const currentUser = userData?.data
-  const isAdmin = currentUser?.role === "ADMIN"
-
-  const { data: employeesData } = useQuery({
-    queryKey: ["EMPLOYEES"],
-    queryFn: async () => {
-      const res = await fetch("/api/employees")
-      if (!res.ok) return { data: [] }
-      return res.json()
-    },
-    enabled: isAdmin,
-  })
-
-  const employees: Array<{ id: number; firstName: string; lastName: string; user: { email: string } | null; department: string | null }> = employeesData?.data || []
+  const { data: employees } = useEmployees()
 
   useEffect(() => {
-    if (!isAdmin && currentUser?.employee?.id) {
-      setSelectedId(currentUser.employee.id)
+    if (!isAdmin && user?.employee?.id) {
+      setSelectedId(user.employee.id)
     }
-  }, [isAdmin, currentUser?.employee?.id])
+  }, [isAdmin, user?.employee?.id])
 
   const filtered = isAdmin
     ? employees.filter((emp) => {
@@ -68,18 +51,7 @@ export default function SettingsPage() {
       })
     : []
 
-  const { data: profileData } = useQuery({
-    queryKey: ["employeeDetail", selectedId],
-    queryFn: async () => {
-      if (!selectedId) return { data: null }
-      const res = await fetch(`/api/employees/${selectedId}`)
-      if (!res.ok) throw new Error("Failed to fetch")
-      return res.json()
-    },
-    enabled: !!selectedId,
-  })
-
-  const emp = profileData?.data
+  const { data: emp } = useEmployeeDetail()
 
   const loadEmployee = (id: number) => {
     setSelectedId(id)
