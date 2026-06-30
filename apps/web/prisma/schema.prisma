@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -50,9 +50,10 @@ model Employee {
   leaveRequests LeaveRequest[]
   tasks         Task[]
   workLogs      WorkLog[]
-  payroll       Payroll[]
-  lastIp        String?        @map("last_ip")
-  image         String?        @db.MediumText
+  payroll                 Payroll[]
+  payrollDownloadRequests PayrollDownloadRequest[]
+  lastIp                  String?        @map("last_ip")
+  image                   String?        @db.Text
 
   @@map("employees")
 }
@@ -87,7 +88,7 @@ model LeaveRequest {
   updatedAt  DateTime    @updatedAt @map("updated_at")
   employee   Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@index([employeeId], map: "leave_requests_employee_id_fkey")
+  @@index([employeeId])
   @@map("leave_requests")
 }
 
@@ -103,7 +104,7 @@ model Task {
   updatedAt   DateTime     @updatedAt @map("updated_at")
   employee    Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@index([employeeId], map: "tasks_employee_id_fkey")
+  @@index([employeeId])
   @@map("tasks")
 }
 
@@ -134,7 +135,7 @@ model WorkLog {
   updatedAt  DateTime @updatedAt @map("updated_at")
   employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@index([employeeId], map: "work_logs_employee_id_fkey")
+  @@index([employeeId])
   @@map("work_logs")
 }
 
@@ -163,7 +164,8 @@ model Payroll {
   status     PayrollStatus @default(DRAFT)
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
-  employee   Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee         Employee                   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  downloadRequests PayrollDownloadRequest[]
 
   @@unique([employeeId, month, year])
   @@map("payroll")
@@ -214,4 +216,27 @@ enum PayrollStatus {
   DRAFT
   PROCESSED
   PAID
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model PayrollDownloadRequest {
+  id          Int           @id @default(autoincrement())
+  payrollId   Int           @map("payroll_id")
+  employeeId  Int           @map("employee_id")
+  status      RequestStatus @default(PENDING)
+  requestedAt DateTime      @default(now()) @map("requested_at")
+  reviewedAt  DateTime?     @map("reviewed_at")
+  reviewedBy  Int?          @map("reviewed_by")
+  payroll     Payroll       @relation(fields: [payrollId], references: [id], onDelete: Cascade)
+  employee    Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([payrollId])
+  @@index([employeeId])
+  @@index([status], map: "pdr_status_idx")
+  @@map("payroll_download_requests")
 }
