@@ -3,8 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { useState, useRef } from "react"
 import { fadeInUp, staggerContainer, slideUp, staggerFast } from "@/lib/animation-variants"
-import { IconPrinter } from "@tabler/icons-react"
-import { useAuth, useEmployees, usePayroll } from "@/hooks/use-data"
+import { IconPrinter, IconCheck, IconX, IconLoader2 } from "@tabler/icons-react"
+import { useAuth, useEmployees, usePayroll, usePayrollRequests } from "@/hooks/use-data"
 
 const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`
 
@@ -59,6 +59,101 @@ function generateSlipHTML(row: { name: string; role: string; department: string 
   </div></body></html>`
 }
 
+function RequestAction({
+  row,
+  request,
+  onView,
+  onRefetch,
+}: {
+  row: { id: number; name: string }
+  request?: { id: number; status: string }
+  onView: () => void
+  onRefetch: () => void
+}) {
+  const [loading, setLoading] = useState(false)
+
+  const handleRequest = async () => {
+    setLoading(true)
+    try {
+      await fetch("/api/payroll/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payrollId: row.id }),
+      })
+      onRefetch()
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRequestAgain = async () => {
+    setLoading(true)
+    try {
+      await fetch("/api/payroll/requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payrollId: row.id }),
+      })
+      onRefetch()
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (request?.status === "APPROVED") {
+    return (
+      <motion.button
+        onClick={onView}
+        className="text-xs font-semibold text-[#22C55E] hover:underline"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        View Slip
+      </motion.button>
+    )
+  }
+
+  if (request?.status === "PENDING") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#FEF3C7] text-[#F59E0B] uppercase tracking-wider">
+        <IconLoader2 size={10} className="animate-spin" />
+        Requested
+      </span>
+    )
+  }
+
+  if (request?.status === "REJECTED") {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-[#FEE2E2] text-[#EF4444] uppercase tracking-wider">
+          Rejected
+        </span>
+        <motion.button
+          onClick={handleRequestAgain}
+          disabled={loading}
+          className="text-[10px] font-semibold text-[#22C55E] hover:underline disabled:opacity-50"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {loading ? "..." : "Request Again"}
+        </motion.button>
+      </div>
+    )
+  }
+
+  return (
+    <motion.button
+      onClick={handleRequest}
+      disabled={loading}
+      className="text-xs font-semibold text-[#F59E0B] hover:underline disabled:opacity-50"
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      {loading ? "Requesting..." : "Request Download"}
+    </motion.button>
+  )
+}
+
 export default function SalaryPayrollPage() {
   const [month, setMonth] = useState(defaultMonth)
   const [year, setYear] = useState(defaultYear)
@@ -66,6 +161,7 @@ export default function SalaryPayrollPage() {
   const [generateError, setGenerateError] = useState("")
   const [generateSuccess, setGenerateSuccess] = useState("")
   const [showModal, setShowModal] = useState(false)
+  const [showRequests, setShowRequests] = useState(false)
   const [previewSlip, setPreviewSlip] = useState<{
     name: string; role: string; department: string | null;
     basic: number; allowances: number; deductions: number; bonus: number; netPay: number;
@@ -79,6 +175,12 @@ export default function SalaryPayrollPage() {
   const { data: employees } = useEmployees()
 
   const { data: payrollData, refetch } = usePayroll(month, year)
+  const { data: downloadRequests, refetch: refetchRequests } = usePayrollRequests()
+
+  const requestMap = new Map<number, typeof downloadRequests[number]>()
+  for (const req of downloadRequests) {
+    requestMap.set(req.payrollId, req)
+  }
 
   type PayrollRow = {
     id: number
@@ -251,6 +353,91 @@ export default function SalaryPayrollPage() {
         ))}
       </motion.div>
 
+      {/* Admin: Download Requests */}
+      {isAdmin && (
+        <motion.div variants={slideUp} className="bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+          <button
+            onClick={() => setShowRequests(!showRequests)}
+            className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-[#F9FAFB] transition-colors"
+          >
+            <h2 className="text-sm font-bold text-[#1A202C] flex items-center gap-2">
+              <IconLoader2 size={16} className="text-[#F59E0B]" />
+              Download Requests
+              {downloadRequests.filter((r) => r.status === "PENDING").length > 0 && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#F59E0B]">
+                  {downloadRequests.filter((r) => r.status === "PENDING").length} pending
+                </span>
+              )}
+            </h2>
+            <span className="text-[#9CA3AF] text-sm">{showRequests ? "▲" : "▼"}</span>
+          </button>
+          <AnimatePresence>
+            {showRequests && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="border-t border-[#E5E7EB]"
+              >
+                {downloadRequests.filter((r) => r.status === "PENDING").length === 0 ? (
+                  <p className="text-sm text-[#9CA3AF] text-center py-8">No pending download requests.</p>
+                ) : (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[#E5E7EB]">
+                        <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Employee</th>
+                        <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Period</th>
+                        <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Net Pay</th>
+                        <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Requested</th>
+                        <th className="text-right text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F3F4F6]">
+                      {downloadRequests.filter((r) => r.status === "PENDING").map((req) => (
+                        <tr key={req.id} className="hover:bg-[#F9FAFB] transition-colors">
+                          <td className="px-5 py-4 font-medium text-[#1A202C]">{req.employeeName}</td>
+                          <td className="px-5 py-4 text-[#6B7280]">{MONTHS[req.month - 1]} {req.year}</td>
+                          <td className="px-5 py-4 text-[#6B7280]">{fmt(req.netPay)}</td>
+                          <td className="px-5 py-4 text-[#6B7280]">{new Date(req.requestedAt).toLocaleDateString("en-GB")}</td>
+                          <td className="px-5 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <motion.button
+                                onClick={async () => {
+                                  await fetch(`/api/payroll/requests/${req.id}/approve`, { method: "PUT" })
+                                  refetchRequests()
+                                }}
+                                className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-[#DCFCE7] text-[#22C55E] hover:bg-[#22C55E] hover:text-white transition-colors uppercase tracking-wider"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <IconCheck size={12} />
+                                Approve
+                              </motion.button>
+                              <motion.button
+                                onClick={async () => {
+                                  await fetch(`/api/payroll/requests/${req.id}/reject`, { method: "PUT" })
+                                  refetchRequests()
+                                }}
+                                className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-[#FEE2E2] text-[#EF4444] hover:bg-[#EF4444] hover:text-white transition-colors uppercase tracking-wider"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <IconX size={12} />
+                                Reject
+                              </motion.button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
       <motion.div
         className="bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden"
         variants={slideUp}
@@ -274,15 +461,24 @@ export default function SalaryPayrollPage() {
                 <td className="px-5 py-4 text-[#F59E0B]">{row.bonus > 0 ? fmt(row.bonus) : "—"}</td>
                 <td className="px-5 py-4 font-bold text-[#1A202C]">{fmt(row.netPay)}</td>
                 <td className="px-5 py-4">
-                  <motion.button
-                    // @ts-expect-error FIXME: fix this ts issue error
-                    onClick={() => setPreviewSlip(row)}
-                    className="text-xs font-semibold text-[#22C55E] hover:underline"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    View Slip
-                  </motion.button>
+                  {isAdmin ? (
+                    <motion.button
+                      // @ts-expect-error FIXME: fix this ts issue error
+                      onClick={() => setPreviewSlip(row)}
+                      className="text-xs font-semibold text-[#22C55E] hover:underline"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      View Slip
+                    </motion.button>
+                  ) : (
+                    <RequestAction
+                      row={row}
+                      request={requestMap.get(row.id)}
+                      onView={() => setPreviewSlip(row)}
+                      onRefetch={refetchRequests}
+                    />
+                  )}
                 </td>
               </motion.tr>
             ))}

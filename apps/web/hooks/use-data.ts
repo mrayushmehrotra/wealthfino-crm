@@ -17,6 +17,7 @@ import {
   calendarDataAtom,
   announcementsAtom,
   payrollAtom,
+  payrollRequestsAtom,
   performanceAtom,
   reportsAtom,
   documentsAtom,
@@ -236,6 +237,27 @@ export function usePayroll(month: number, year: number) {
     queryKey: ["payroll", month, year],
     queryFn: async () => {
       const res = await fetch(`/api/payroll?month=${month}&year=${year}`)
+      if (!res.ok) return { data: [] }
+      return res.json()
+    },
+  })
+
+  useEffect(() => {
+    if (query.data?.data) setData(query.data.data)
+  }, [query.data, setData])
+
+  return { data, isPending: query.isPending, refetch: query.refetch }
+}
+
+// ─── Payroll Download Requests ────────────────────────────────────────────
+
+export function usePayrollRequests() {
+  const [data, setData] = useAtom(payrollRequestsAtom)
+
+  const query = useQuery({
+    queryKey: ["payrollRequests"],
+    queryFn: async () => {
+      const res = await fetch("/api/payroll/requests")
       if (!res.ok) return { data: [] }
       return res.json()
     },

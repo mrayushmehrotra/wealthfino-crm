@@ -175,6 +175,23 @@ export interface PayrollRecord {
 
 export const payrollAtom = atom<PayrollRecord[]>([])
 
+// ─── Payroll Download Requests ────────────────────────────────────────────
+export interface PayrollDownloadRequest {
+  id: number
+  payrollId: number
+  employeeId: number
+  status: "PENDING" | "APPROVED" | "REJECTED"
+  requestedAt: string
+  reviewedAt: string | null
+  month: number
+  year: number
+  netPay: number
+  employeeName: string
+  department: string | null
+}
+
+export const payrollRequestsAtom = atom<PayrollDownloadRequest[]>([])
+
 // ─── Performance ──────────────────────────────────────────────────────────
 export interface PerfData {
   name: string
