@@ -13,7 +13,7 @@ const WORK_HOURS = Array.from({ length: 10 }, (_, i) => i + 9)
 
 export default function WorkLogPage() {
   const [date, setDate] = useState<Date>(new Date())
-  const [logs, setLogs] = useState<Record<number, string>>({})
+  const [logs, setLogs] = useState<Record<number, { task: string, status: string }>>({})
   const [savingState, setSavingState] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [isLoading, setIsLoading] = useState(false)
   
@@ -23,14 +23,22 @@ export default function WorkLogPage() {
   const fetchLogs = useCallback(async () => {
     setIsLoading(true)
     
-    let loadedLogs: Record<number, string> = {}
+    let loadedLogs: Record<number, { task: string, status: string }> = {}
     
     // First try from localStorage if it's today
     if (isToday) {
       const stored = localStorage.getItem(`work_log_${dateStr}`)
       if (stored) {
         try {
-          loadedLogs = JSON.parse(stored)
+          // ensure backwards compatibility with older localstorage format
+          const parsed = JSON.parse(stored)
+          for (const key in parsed) {
+             if (typeof parsed[key] === 'string') {
+               loadedLogs[key as unknown as number] = { task: parsed[key], status: "Not Yet Started" }
+             } else {
+               loadedLogs[key as unknown as number] = parsed[key]
+             }
+          }
         } catch (e) {
           console.error(e)
         }
@@ -45,8 +53,8 @@ export default function WorkLogPage() {
         data.data.forEach((log: any) => {
           const hour = new Date(log.startTime).getHours()
           // Only overwrite if it wasn't already loaded from localStorage (or if not today)
-          if (!loadedLogs[hour]) {
-            loadedLogs[hour] = log.task
+          if (!loadedLogs[hour] || !isToday) {
+            loadedLogs[hour] = { task: log.task, status: log.status || "Not Yet Started" }
           }
         })
       }
@@ -62,8 +70,9 @@ export default function WorkLogPage() {
     fetchLogs()
   }, [fetchLogs])
 
-  const handleLogChange = (hour: number, value: string) => {
-    const newLogs = { ...logs, [hour]: value }
+  const updateLog = (hour: number, updates: { task?: string, status?: string }) => {
+    const current = logs[hour] || { task: "", status: "Not Yet Started" }
+    const newLogs = { ...logs, [hour]: { ...current, ...updates } }
     setLogs(newLogs)
     
     // Save to localStorage if it's today
@@ -78,7 +87,7 @@ export default function WorkLogPage() {
     if (Object.keys(logs).length === 0) return
     setSavingState("saving")
     
-    const logsArray = Object.entries(logs).map(([hourStr, task]) => {
+    const logsArray = Object.entries(logs).map(([hourStr, data]) => {
       const hour = parseInt(hourStr)
       const startTime = new Date(date)
       startTime.setHours(hour, 0, 0, 0)
@@ -89,7 +98,8 @@ export default function WorkLogPage() {
       return {
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        task
+        task: data.task,
+        status: data.status
       }
     })
 
@@ -105,8 +115,6 @@ export default function WorkLogPage() {
       
       if (res.ok) {
         setSavingState("saved")
-        // If synced successfully, we can optionally clear from localStorage
-        // localStorage.removeItem(`work_log_${dateStr}`)
         setTimeout(() => setSavingState("idle"), 3000)
       } else {
         setSavingState("error")
@@ -227,15 +235,33 @@ export default function WorkLogPage() {
                     {formatHour(hour)} - {formatHour(hour + 1)}
                   </span>
                 </div>
-                <div className="flex-grow relative">
+                <div className="flex-grow flex flex-col sm:flex-row gap-3 relative">
                   <input
                     type="text"
-                    value={logs[hour] || ""}
-                    onChange={(e) => handleLogChange(hour, e.target.value)}
+                    value={logs[hour]?.task || ""}
+                    onChange={(e) => updateLog(hour, { task: e.target.value })}
                     placeholder={isToday ? "What did you work on?" : "No task recorded"}
-                    disabled={!isToday && !logs[hour]} // disable empty inputs on past/future dates for clarity
+                    disabled={!isToday && !logs[hour]?.task} // disable empty inputs on past/future dates for clarity
                     className="w-full bg-[#F9FAFB] border border-[#E5E7EB] text-[#1A202C] text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E] transition-all group-hover:border-[#D1D5DB] disabled:opacity-50 disabled:cursor-not-allowed"
                   />
+                  {(isToday || logs[hour]?.task) && (
+                    <select
+                      value={logs[hour]?.status || "Not Yet Started"}
+                      onChange={(e) => updateLog(hour, { status: e.target.value })}
+                      disabled={!isToday && !logs[hour]?.task}
+                      className={`w-full sm:w-40 flex-shrink-0 bg-[#F9FAFB] border border-[#E5E7EB] text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                        logs[hour]?.status === "Done" ? "text-green-700 font-medium" : 
+                        logs[hour]?.status === "In Progress" ? "text-blue-700 font-medium" : 
+                        logs[hour]?.status === "Pending" ? "text-yellow-700 font-medium" : 
+                        "text-[#6B7280]"
+                      }`}
+                    >
+                      <option value="Not Yet Started">Not Yet Started</option>
+                      <option value="Pending">Pending</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Done">Done</option>
+                    </select>
+                  )}
                 </div>
               </div>
             ))}

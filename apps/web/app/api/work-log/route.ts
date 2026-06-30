@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   // or we can use upsert logic. Upsert is safer.
   
   for (const log of logs) {
-    const { startTime, endTime, task } = log;
+    const { startTime, endTime, task, status } = log;
     
     if (!startTime || !endTime) continue;
     
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       } else {
         await prisma.workLog.update({
           where: { id: existing.id },
-          data: { task },
+          data: { task, status: status || "Not Yet Started" },
         });
       }
     } else {
@@ -91,6 +91,7 @@ export async function POST(request: Request) {
             startTime: new Date(startTime),
             endTime: new Date(endTime),
             task,
+            status: status || "Not Yet Started",
             hours: 1, // Fixed to 1 hour per slot
           }
         });

@@ -129,6 +129,7 @@ model WorkLog {
   startTime  DateTime @map("start_time")
   endTime    DateTime @map("end_time")
   hours      Float
+  status     String   @default("Not Yet Started")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
   employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
