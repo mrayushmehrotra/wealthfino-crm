@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       });
     }
 
-    if (ip) {
+    if (ip && ip !== user.employee.lastIp) {
       await prisma.employee.update({
         where: { id: user.employee.id },
         data: { lastIp: ip },

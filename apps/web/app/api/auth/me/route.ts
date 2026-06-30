@@ -48,12 +48,11 @@ export async function GET(request: Request) {
       });
     }
 
-    if (ip) {
+    if (ip && ip !== user.employee.lastIp) {
       await prisma.employee.update({
         where: { id: user.employee.id },
         data: { lastIp: ip },
       });
-      // also update user.employee.lastIp in memory so we return it
       user.employee.lastIp = ip;
     }
   }
