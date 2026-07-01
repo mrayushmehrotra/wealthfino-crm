@@ -18,8 +18,8 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-[#F5F7FA]">
       <Sidebar role={user.role} />
       <Topbar />
-      <main className="ml-[248px] pt-16 min-h-screen">
-        <div className="p-6">
+      <main className="ml-0 md:ml-[248px] pt-16 min-h-screen">
+        <div className="p-4 sm:p-6">
           <PageTransition>{children}</PageTransition>
         </div>
       </main>

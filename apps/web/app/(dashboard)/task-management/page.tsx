@@ -82,7 +82,7 @@ export default function TaskManagementPage() {
       initial="hidden"
       animate="visible"
     >
-      <motion.div className="flex items-center justify-between" variants={fadeInUp}>
+      <motion.div className="flex flex-col sm:flex-row items-start sm:items-center gap-3" variants={fadeInUp}>
         <div>
           <h1 className="text-2xl font-bold text-[#1A202C]">Task Management</h1>
           <p className="text-sm text-[#6B7280] mt-1">Track and assign tasks across the team</p>
@@ -131,7 +131,7 @@ export default function TaskManagementPage() {
                     placeholder="Add more details..."
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider mb-1.5">
                       Assign To
@@ -214,7 +214,7 @@ export default function TaskManagementPage() {
         )}
       </motion.div>
 
-      <motion.div className="grid grid-cols-3 gap-4" variants={staggerContainer}>
+      <motion.div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4" variants={staggerContainer}>
         {[
           { label: "Total", value: stats.total },
           { label: "In Progress", value: stats.inProgress },
@@ -244,7 +244,7 @@ export default function TaskManagementPage() {
               {["Task", "Assignee", "Due Date", "Priority", "Status", "Action"].map((h) => (
                 <th
                   key={h}
-                  className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3"
+                  className={`text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3 ${(["Assignee", "Due Date"].includes(h)) ? "hidden lg:table-cell" : ""}`}
                 >
                   {h}
                 </th>
@@ -262,10 +262,10 @@ export default function TaskManagementPage() {
                   <p className="font-medium text-[#1A202C]">{task.title}</p>
                   <p className="text-[10px] text-[#9CA3AF] line-clamp-1">{task.description}</p>
                 </td>
-                <td className="px-5 py-4 text-[#6B7280]">
+                <td className="px-5 py-4 text-[#6B7280] hidden lg:table-cell">
                   {task.employee.firstName} {task.employee.lastName}
                 </td>
-                <td className="px-5 py-4 text-[#6B7280]">
+                <td className="px-5 py-4 text-[#6B7280] hidden lg:table-cell">
                   {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-GB') : "No Date"}
                 </td>
                 <td className="px-5 py-4">

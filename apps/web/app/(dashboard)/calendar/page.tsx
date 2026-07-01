@@ -81,7 +81,7 @@ export default function CalendarPage() {
           <select
             value={selectedEmployeeId}
             onChange={(e) => setSelectedEmployeeId(e.target.value)}
-            className="px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-sm font-medium text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/30"
+            className="w-full sm:w-auto px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-sm font-medium text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/30"
           >
             <option value="">Select an employee</option>
             {employees.map((emp) => (
@@ -106,7 +106,7 @@ export default function CalendarPage() {
         className="bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden"
         variants={slideUp}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB] flex-wrap gap-2">
           <motion.button
             onClick={prev}
             className="h-8 w-8 rounded-lg border border-[#E5E7EB] flex items-center justify-center hover:bg-[#F5F7FA] transition-colors text-[#6B7280] text-sm font-bold"
@@ -142,7 +142,7 @@ export default function CalendarPage() {
         <div className="grid grid-cols-7">
           {cells.map((day, i) => {
             if (day === null) {
-              return <div key={`empty-${i}`} className="min-h-[90px] border-r border-b border-[#F3F4F6]" />
+              return <div key={`empty-${i}`} className="min-h-[60px] sm:min-h-[90px] border-r border-b border-[#F3F4F6]" />
             }
 
             const dayStr = String(day)
@@ -162,12 +162,12 @@ export default function CalendarPage() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.2, delay: i * 0.005 }}
-                className={`relative min-h-[90px] p-2 border-r border-b border-[#F3F4F6] transition-colors flex flex-col ${
+                className={`relative min-h-[60px] sm:min-h-[90px] p-1 sm:p-2 border-r border-b border-[#F3F4F6] transition-colors flex flex-col ${
                   color ? color.bg + " hover:brightness-95" : "hover:bg-[#F9FAFB]"
                 } ${dayInfo ? "cursor-pointer" : ""}`}
               >
                 <div
-                  className={`h-7 w-7 rounded-full flex items-center justify-center text-sm font-semibold mb-1 shrink-0 ${
+                  className={`h-6 w-6 sm:h-7 sm:w-7 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold mb-1 shrink-0 ${
                     isToday
                       ? "bg-[#22C55E] text-white"
                       : "text-[#1A202C]"

@@ -75,7 +75,7 @@ export default function EmployeeProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Sidebar */}
         <motion.div
-          className="lg:col-span-1 bg-white rounded-2xl border border-[#E5E7EB] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col items-center text-center relative overflow-hidden"
+          className="lg:col-span-1 bg-white rounded-2xl border border-[#E5E7EB] p-4 sm:p-6 lg:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col items-center text-center relative overflow-hidden"
           variants={slideUp}
         >
           <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-[#22C55E]/10 to-[#16A34A]/5 z-0" />
@@ -141,7 +141,7 @@ export default function EmployeeProfilePage() {
         <div className="lg:col-span-2 space-y-6">
           
           {/* Quick Stats */}
-          <motion.div className="grid grid-cols-2 gap-4" variants={staggerContainer}>
+          <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" variants={staggerContainer}>
             <motion.div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center gap-4" variants={slideUp}>
               <div className="h-12 w-12 rounded-xl bg-[#EFF6FF] flex items-center justify-center text-[#3B82F6]">
                 <IconCalendar size={24} stroke={1.5} />

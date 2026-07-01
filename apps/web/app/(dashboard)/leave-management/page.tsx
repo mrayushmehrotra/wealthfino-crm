@@ -106,7 +106,7 @@ export default function LeaveManagementPage() {
       initial="hidden"
       animate="visible"
     >
-      <motion.div className="flex items-center justify-between" variants={fadeInUp}>
+      <motion.div className="flex flex-col sm:flex-row items-start sm:items-center gap-3" variants={fadeInUp}>
         <div>
           <h1 className="text-2xl font-bold text-[#1A202C]">Leave Management</h1>
           <p className="text-sm text-[#6B7280] mt-1">Review and manage leave requests</p>
@@ -243,7 +243,7 @@ export default function LeaveManagementPage() {
         )}
       </motion.div>
 
-      <motion.div className="grid grid-cols-4 gap-4" variants={staggerContainer}>
+      <motion.div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4" variants={staggerContainer}>
         {[
           { label: "Total", count: stats.total, style: "text-[#3B82F6] bg-[#EFF6FF]" },
           { label: "Pending", count: stats.pending, style: "text-[#F59E0B] bg-[#FEF3C7]" },
@@ -281,7 +281,7 @@ export default function LeaveManagementPage() {
               {["Employee", "Type", "From", "To", "Days", "Reason", "Status", "Action"].map((h) => (
                 <th
                   key={h}
-                  className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3"
+                  className={`text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3 ${(["From", "To", "Days", "Reason"].includes(h)) ? "hidden md:table-cell" : ""}`}
                 >
                   {h}
                 </th>
@@ -311,10 +311,10 @@ export default function LeaveManagementPage() {
                 >
                   <td className="px-5 py-4 font-medium text-[#1A202C]">{empName}</td>
                   <td className="px-5 py-4 text-[#6B7280]">{formatType(row.type)}</td>
-                  <td className="px-5 py-4 text-[#6B7280]">{fromStr}</td>
-                  <td className="px-5 py-4 text-[#6B7280]">{toStr}</td>
-                  <td className="px-5 py-4 text-[#6B7280]">{row.days}</td>
-                  <td className="px-5 py-4 text-[#6B7280] max-w-[160px] truncate">{row.reason || "N/A"}</td>
+                  <td className="px-5 py-4 text-[#6B7280] hidden md:table-cell">{fromStr}</td>
+                  <td className="px-5 py-4 text-[#6B7280] hidden md:table-cell">{toStr}</td>
+                  <td className="px-5 py-4 text-[#6B7280] hidden md:table-cell">{row.days}</td>
+                  <td className="px-5 py-4 text-[#6B7280] max-w-[160px] truncate hidden md:table-cell">{row.reason || "N/A"}</td>
                   <td className="px-5 py-4">
                     <span
                       className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[statusDisplay]}`}
@@ -324,7 +324,7 @@ export default function LeaveManagementPage() {
                   </td>
                   <td className="px-5 py-4">
                     {isAdmin && row.status === "PENDING" ? (
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <motion.button
                           onClick={() => handleStatusUpdate(row.id, "APPROVED")}
                           className="text-xs font-semibold text-[#22C55E] hover:underline"

@@ -187,7 +187,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <motion.div
-          className="flex items-center gap-2 border border-[#E5E7EB] rounded-lg px-3 py-2 bg-white text-sm text-[#6B7280] shadow-sm"
+          className="hidden sm:flex items-center gap-2 border border-[#E5E7EB] rounded-lg px-3 py-2 bg-white text-sm text-[#6B7280] shadow-sm"
           whileHover={{ scale: 1.02 }}
         >
           <IconCalendarEvent size={16} className="text-[#6B7280]" />
@@ -239,7 +239,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions - same for all */}
         <motion.div
-          className="lg:col-span-2 bg-white rounded-xl border border-[#E5E7EB] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+          className="lg:col-span-2 bg-white rounded-xl border border-[#E5E7EB] p-4 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
           variants={fadeInUp}
         >
           <div className="flex items-center justify-between mb-5">
@@ -252,14 +252,14 @@ export default function DashboardPage() {
             </Link>
           </div>
           <motion.div
-            className="grid grid-cols-4 gap-3"
+            className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3"
             variants={staggerContainer}
           >
             {QUICK_ACTIONS.map(({ label, href, icon: Icon, iconBg, iconColor }) => (
               <motion.div key={label} variants={fadeInUp}>
                 <Link
                   href={href}
-                  className="flex flex-col items-center gap-2.5 p-3 rounded-xl border border-[#E5E7EB] hover:border-[#22C55E]/30 hover:shadow-sm transition-all group block"
+                  className="flex flex-col items-center gap-2 sm:gap-2.5 p-2 sm:p-3 rounded-xl border border-[#E5E7EB] hover:border-[#22C55E]/30 hover:shadow-sm transition-all group block"
                 >
                   <motion.div
                     className={`h-11 w-11 rounded-xl ${iconBg} flex items-center justify-center group-hover:scale-105 transition-transform`}
@@ -280,7 +280,7 @@ export default function DashboardPage() {
         {/* Right column — task stats + productivity */}
         <motion.div className="flex flex-col gap-4" variants={staggerContainer}>
           <motion.div
-            className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+            className="bg-white rounded-xl border border-[#E5E7EB] p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
             variants={slideUp}
             whileHover={{ y: -2 }}
           >
@@ -325,7 +325,7 @@ export default function DashboardPage() {
           </motion.div>
 
           <motion.div
-            className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+            className="bg-white rounded-xl border border-[#E5E7EB] p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
             variants={slideUp}
             whileHover={{ y: -2 }}
           >
@@ -367,7 +367,7 @@ export default function DashboardPage() {
 
           {isAdmin && (
             <motion.div
-              className="bg-white rounded-xl border border-[#E5E7EB] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+              className="bg-white rounded-xl border border-[#E5E7EB] p-4 sm:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
               variants={slideUp}
               whileHover={{ y: -2 }}
             >

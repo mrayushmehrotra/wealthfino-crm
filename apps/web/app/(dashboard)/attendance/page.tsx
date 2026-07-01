@@ -60,7 +60,7 @@ export default function AttendancePage() {
         </div>
       </motion.div>
 
-      <motion.div className="grid grid-cols-3 gap-4" variants={staggerContainer}>
+      <motion.div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4" variants={staggerContainer}>
         {[
           { label: "Present", value: stats.present, color: "text-[#22C55E]", bg: "bg-[#DCFCE7]" },
           { label: "Absent", value: stats.absent, color: "text-[#EF4444]", bg: "bg-[#FEE2E2]" },
@@ -104,7 +104,7 @@ export default function AttendancePage() {
               {[role === "EMPLOYEE" ? "Date" : "Employee", "Check-In", "Check-Out", "Hours", "Status"].map((h) => (
                 <th
                   key={h}
-                  className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3"
+                  className={`text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3 ${(h === "Check-Out" || h === "Hours") ? "hidden sm:table-cell" : ""}`}
                 >
                   {h}
                 </th>
@@ -144,8 +144,8 @@ export default function AttendancePage() {
                 >
                   <td className="px-5 py-4 font-medium text-[#1A202C]">{firstCol}</td>
                   <td className="px-5 py-4 text-[#6B7280]">{checkInTime}</td>
-                  <td className="px-5 py-4 text-[#6B7280]">{checkOutTime}</td>
-                  <td className="px-5 py-4 text-[#6B7280]">{hoursStr}</td>
+                  <td className="px-5 py-4 text-[#6B7280] hidden sm:table-cell">{checkOutTime}</td>
+                  <td className="px-5 py-4 text-[#6B7280] hidden sm:table-cell">{hoursStr}</td>
                   <td className="px-5 py-4">
                     <span
                       className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[statusFormatted] || "bg-[#F3F4F6] text-[#6B7280]"}`}

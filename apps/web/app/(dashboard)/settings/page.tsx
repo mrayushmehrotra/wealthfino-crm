@@ -170,7 +170,7 @@ export default function SettingsPage() {
               />
             </div>
           </div>
-          <div className="max-h-[400px] overflow-y-auto">
+          <div className="max-h-[250px] sm:max-h-[400px] overflow-y-auto">
             {filtered.map((emp) => (
               <button
                 key={emp.id}
@@ -213,7 +213,7 @@ export default function SettingsPage() {
 
               <div className="p-5 space-y-6">
                 {/* Profile Image & Personal Info */}
-                <div className="flex gap-6">
+                <div className="flex-col sm:flex-row gap-4 sm:gap-6">
                   <div className="shrink-0 flex flex-col items-center gap-2">
                     <div className="h-24 w-24 rounded-full bg-[#DCFCE7] flex items-center justify-center overflow-hidden border-2 border-[#E5E7EB]">
                       {form.image ? (
@@ -245,7 +245,7 @@ export default function SettingsPage() {
                 {/* Personal Info */}
                 <div>
                   <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Personal Info</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">First Name</label>
                       <input
@@ -300,7 +300,7 @@ export default function SettingsPage() {
                 {/* Documents */}
                 <div className="border-t border-[#E5E7EB] pt-6">
                   <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Documents</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Aadhar Card Number</label>
                       <input
@@ -323,7 +323,7 @@ export default function SettingsPage() {
                 {/* Financial */}
                 <div className="border-t border-[#E5E7EB] pt-6">
                   <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Financial</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Salary (₹)</label>
                       <input
@@ -339,7 +339,7 @@ export default function SettingsPage() {
                 {/* Stats */}
                 <div className="border-t border-[#E5E7EB] pt-6">
                   <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Statistics (read-only)</h3>
-                  <div className="grid grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
                     <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
                       <p className="text-2xl font-bold text-[#3B82F6]">{emp.totalAttendance ?? 0}</p>
                       <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Attendance</p>

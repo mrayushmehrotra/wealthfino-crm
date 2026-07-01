@@ -102,7 +102,7 @@ export function Sidebar({
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 flex w-[248px] flex-col bg-[#0D1B2A]">
+    <aside className="fixed inset-y-0 left-0 z-50 hidden md:flex w-[248px] flex-col bg-[#0D1B2A]">
       <motion.div
         className="flex items-center gap-3 border-b border-white/10 px-6 py-5"
         initial={{ opacity: 0, x: -20 }}

@@ -48,7 +48,7 @@ export default function AccessRequestsPage() {
         variants={slideUp}
       >
         <div className="p-4 border-b border-[#E5E7EB]">
-          <div className="relative max-w-sm">
+          <div className="relative max-w-full sm:max-w-sm">
             <IconSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
             <motion.input
               type="text"
@@ -65,7 +65,7 @@ export default function AccessRequestsPage() {
                 {["Employee Name", "Email", "Role", "Requested On", "Actions"].map((h) => (
                   <th
                     key={h}
-                    className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3"
+                    className={`text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3 ${h === "Requested On" ? "hidden md:table-cell" : ""}`}
                   >
                     {h}
                   </th>
@@ -122,11 +122,11 @@ export default function AccessRequestsPage() {
                         {req.role} (Pending)
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-[#6B7280]">
+                    <td className="px-5 py-4 text-[#6B7280] hidden md:table-cell">
                       {new Date(req.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-col sm:flex-row">
                         <motion.button
                           onClick={() => actionMutation.mutate({ id: req.id, action: "approve" })}
                           disabled={actionMutation.isPending}

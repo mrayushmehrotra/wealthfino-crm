@@ -59,7 +59,7 @@ export default function ReportsPage() {
               <thead>
                 <tr className="border-b border-[#E5E7EB]">
                   <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Employee</th>
-                  <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">Department</th>
+                  <th className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3 hidden lg:table-cell">Department</th>
                   <th className="text-center text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-4 py-3">Attendance</th>
                   <th className="text-center text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-4 py-3">Tasks Done</th>
                   <th className="text-center text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-4 py-3">Productivity</th>
@@ -69,7 +69,7 @@ export default function ReportsPage() {
                 {employeeStats.map((emp, i) => (
                   <motion.tr key={emp.employeeId} variants={fadeInUp} className="hover:bg-[#F9FAFB] transition-colors">
                     <td className="px-5 py-4 font-medium text-[#1A202C]">{emp.name}</td>
-                    <td className="px-5 py-4 text-[#6B7280]">{emp.department || "N/A"}</td>
+                    <td className="px-5 py-4 text-[#6B7280] hidden lg:table-cell">{emp.department || "N/A"}</td>
                     <td className="px-4 py-4 text-center">
                       <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
                         emp.attendancePercent >= 80 ? "bg-[#DCFCE7] text-[#22C55E]" :

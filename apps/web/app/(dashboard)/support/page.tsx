@@ -25,7 +25,7 @@ export default function SupportPage() {
         <p className="text-sm text-[#6B7280] mt-1">Find answers or reach out to us</p>
       </motion.div>
 
-      <motion.div className="grid grid-cols-3 gap-4" variants={staggerContainer}>
+      <motion.div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4" variants={staggerContainer}>
         {[
           { label: "Email Support", value: "hr@wealthfino.com", icon: IconMail, bg: "bg-[#EFF6FF]", color: "text-[#3B82F6]" },
           { label: "Phone", value: "+91 98765 43210", icon: IconPhone, bg: "bg-[#DCFCE7]", color: "text-[#22C55E]" },

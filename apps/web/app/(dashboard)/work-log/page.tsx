@@ -183,52 +183,54 @@ export default function WorkLogPage() {
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              const rows = [["Date", "Hour", "Time Range", "Task", "Status"]]
-              const dateLabel = date.toLocaleDateString("en-GB")
-              for (const hour of WORK_HOURS) {
-                const entry = logs[hour]
-                rows.push([dateLabel, `${hour}:00`, `${formatHour(hour)} - ${formatHour(hour + 1)}`, entry?.task || "", entry?.status || "Not Yet Started"])
-              }
-              const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n")
-              const blob = new Blob([csv], { type: "text/csv" })
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement("a")
-              a.href = url
-              a.download = `work-log-${dateStr}.csv`
-              a.click()
-              URL.revokeObjectURL(url)
-            }}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-[#E5E7EB] text-sm font-semibold text-[#6B7280] hover:bg-[#F9FAFB] transition-colors"
-          >
-            <IconDownload size={16} />
-            CSV
-          </button>
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => {
+                const rows = [["Date", "Hour", "Time Range", "Task", "Status"]]
+                const dateLabel = date.toLocaleDateString("en-GB")
+                for (const hour of WORK_HOURS) {
+                  const entry = logs[hour]
+                  rows.push([dateLabel, `${hour}:00`, `${formatHour(hour)} - ${formatHour(hour + 1)}`, entry?.task || "", entry?.status || "Not Yet Started"])
+                }
+                const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n")
+                const blob = new Blob([csv], { type: "text/csv" })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement("a")
+                a.href = url
+                a.download = `work-log-${dateStr}.csv`
+                a.click()
+                URL.revokeObjectURL(url)
+              }}
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-[#E5E7EB] text-sm font-semibold text-[#6B7280] hover:bg-[#F9FAFB] transition-colors w-full sm:w-auto"
+            >
+              <IconDownload size={16} />
+              CSV
+            </button>
 
-          <button
-            onClick={syncToDatabase}
-            disabled={savingState === "saving"}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-              savingState === "saved" ? "bg-green-100 text-green-700" :
-              savingState === "error" ? "bg-red-100 text-red-700" :
-              "bg-[#22C55E] hover:bg-[#16A34A] text-white"
-            }`}
-          >
-            {savingState === "saving" ? <IconLoader2 size={16} className="animate-spin" /> : 
-             savingState === "saved" ? <IconCheck size={16} /> :
-             <IconCloudUpload size={16} />}
-            {savingState === "saving" ? "Syncing..." : 
-             savingState === "saved" ? "Synced" : 
-             "Force Sync to DB"}
-          </button>
+            <button
+              onClick={syncToDatabase}
+              disabled={savingState === "saving"}
+              className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all w-full sm:w-auto ${
+                savingState === "saved" ? "bg-green-100 text-green-700" :
+                savingState === "error" ? "bg-red-100 text-red-700" :
+                "bg-[#22C55E] hover:bg-[#16A34A] text-white"
+              }`}
+            >
+              {savingState === "saving" ? <IconLoader2 size={16} className="animate-spin" /> : 
+               savingState === "saved" ? <IconCheck size={16} /> :
+               <IconCloudUpload size={16} />}
+              {savingState === "saving" ? "Syncing..." : 
+               savingState === "saved" ? "Synced" : 
+               "Force Sync to DB"}
+            </button>
+          </div>
         </div>
       </motion.div>
 
       <motion.div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden" variants={fadeInUp}>
         {/* Header / Date Controls */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
           <button 
             onClick={prevDay}
             className="p-2 rounded-lg hover:bg-[#E5E7EB] text-[#4B5563] transition-colors"
@@ -248,7 +250,7 @@ export default function WorkLogPage() {
         </div>
 
         {/* Hourly Inputs */}
-        <div className="p-6 relative min-h-[400px]">
+        <div className="p-4 sm:p-6 relative min-h-[400px]">
           {isLoading && (
             <div className="absolute inset-0 bg-white/70 z-10 flex items-center justify-center">
               <IconLoader2 className="animate-spin text-[#22C55E]" size={32} />
@@ -257,7 +259,7 @@ export default function WorkLogPage() {
           
           <div className="space-y-4">
             {WORK_HOURS.map(hour => (
-              <div key={hour} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 group">
+              <div key={hour} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 group">
                 <div className="w-28 flex-shrink-0 flex items-center gap-3">
                   <div className="h-2 w-2 rounded-full bg-[#E5E7EB] group-hover:bg-[#22C55E] transition-colors" />
                   <span className="text-sm font-medium text-[#4B5563]">

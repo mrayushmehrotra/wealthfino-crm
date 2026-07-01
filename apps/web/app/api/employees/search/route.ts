@@ -28,13 +28,13 @@ export async function GET(request: Request) {
     email: string;
     role: string;
   }>>(
-    `SELECT e.id, e.first_name, e.last_name, e.phone, e.department, e.designation, e.salary,
+    `SELECT e.id, e.first_name, e.last_name, e.phone, e.department, e.designation, CAST(e.salary AS TEXT),
             u.email, u.role
      FROM employees e
      JOIN users u ON u.id = e.user_id
-     WHERE e.first_name LIKE ? OR e.last_name LIKE ?
-        OR e.phone LIKE ? OR CAST(e.salary AS CHAR) LIKE ?
-        OR u.email LIKE ?
+     WHERE e.first_name ILIKE $1 OR e.last_name ILIKE $2
+        OR e.phone ILIKE $3 OR CAST(e.salary AS TEXT) ILIKE $4
+        OR u.email ILIKE $5
      LIMIT 20`,
     searchTerm, searchTerm, searchTerm, searchTerm, searchTerm
   );

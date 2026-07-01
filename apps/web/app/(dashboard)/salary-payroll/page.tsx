@@ -282,14 +282,14 @@ export default function SalaryPayrollPage() {
       initial="hidden"
       animate="visible"
     >
-      <motion.div className="flex items-center justify-between" variants={fadeInUp}>
+      <motion.div className="flex items-center justify-between flex-wrap gap-3" variants={fadeInUp}>
         <div>
           <h1 className="text-2xl font-bold text-[#1A202C]">Salary & Payroll</h1>
           <p className="text-sm text-[#6B7280] mt-1">
             {MONTHS[month - 1]} {year} payroll summary
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2 text-sm">
             <select
               value={month}
@@ -314,7 +314,7 @@ export default function SalaryPayrollPage() {
             <motion.button
               onClick={openModal}
               disabled={generating}
-              className="bg-[#22C55E] hover:bg-[#16A34A] disabled:bg-[#9CA3AF] text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
+              className="w-full sm:w-auto bg-[#22C55E] hover:bg-[#16A34A] disabled:bg-[#9CA3AF] text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
@@ -335,7 +335,7 @@ export default function SalaryPayrollPage() {
         </motion.div>
       )}
 
-      <motion.div className="grid grid-cols-3 gap-4" variants={staggerContainer}>
+      <motion.div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4" variants={staggerContainer}>
         {[
           { label: "Total Payroll", value: fmt(PAYROLL.reduce((s, r) => s + r.netPay, 0)), color: "text-[#1A202C]" },
           { label: "Total Employees", value: PAYROLL.length.toString(), color: "text-[#22C55E]" },
@@ -446,7 +446,7 @@ export default function SalaryPayrollPage() {
           <thead>
             <tr className="border-b border-[#E5E7EB]">
               {["Employee", "Role", "Basic", "Allowances", "Deductions", "Bonus", "Net Pay", "Action"].map((h) => (
-                <th key={h} className="text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3">{h}</th>
+                <th key={h} className={`text-left text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider px-5 py-3 ${["Role", "Basic", "Allowances", "Deductions", "Bonus"].includes(h) ? "hidden sm:table-cell" : ""}`}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -454,11 +454,11 @@ export default function SalaryPayrollPage() {
             {PAYROLL.map((row) => (
               <motion.tr key={row.id} variants={fadeInUp} className="hover:bg-[#F9FAFB] transition-colors">
                 <td className="px-5 py-4 font-medium text-[#1A202C]">{row.name}</td>
-                <td className="px-5 py-4 text-[#6B7280]">{row.role}</td>
-                <td className="px-5 py-4 text-[#6B7280]">{fmt(row.basic)}</td>
-                <td className="px-5 py-4 text-[#22C55E]">+{fmt(row.allowances)}</td>
-                <td className="px-5 py-4 text-[#EF4444]">-{fmt(row.deductions)}</td>
-                <td className="px-5 py-4 text-[#F59E0B]">{row.bonus > 0 ? fmt(row.bonus) : "—"}</td>
+                <td className="hidden sm:table-cell px-5 py-4 text-[#6B7280]">{row.role}</td>
+                <td className="hidden sm:table-cell px-5 py-4 text-[#6B7280]">{fmt(row.basic)}</td>
+                <td className="hidden sm:table-cell px-5 py-4 text-[#22C55E]">+{fmt(row.allowances)}</td>
+                <td className="hidden sm:table-cell px-5 py-4 text-[#EF4444]">-{fmt(row.deductions)}</td>
+                <td className="hidden sm:table-cell px-5 py-4 text-[#F59E0B]">{row.bonus > 0 ? fmt(row.bonus) : "—"}</td>
                 <td className="px-5 py-4 font-bold text-[#1A202C]">{fmt(row.netPay)}</td>
                 <td className="px-5 py-4">
                   {isAdmin ? (
@@ -539,7 +539,7 @@ export default function SalaryPayrollPage() {
                 {allEmployees.map((emp) => (
                   <div
                     key={emp.id}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${getEntry(emp.id).checked ? "border-[#22C55E] bg-[#F0FFF4]" : "border-[#E5E7EB]"
+                    className={`flex-col sm:flex-row items-start sm:items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${getEntry(emp.id).checked ? "border-[#22C55E] bg-[#F0FFF4]" : "border-[#E5E7EB]"
                       }`}
                   >
                     <input
@@ -552,14 +552,14 @@ export default function SalaryPayrollPage() {
                       <p className="text-sm font-medium text-[#1A202C]">{emp.firstName} {emp.lastName}</p>
                       <p className="text-xs text-[#6B7280]">{emp.department || "N/A"} — {emp.salary != null ? fmt(Number(emp.salary)) : "N/A"}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs font-medium text-[#6B7280]">Bonus:</label>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <label className="text-xs font-medium text-[#6B7280] shrink-0">Bonus:</label>
                       <input
                         type="number"
                         placeholder="0"
                         value={getEntry(emp.id).bonus}
                         onChange={(e) => setBonus(emp.id, e.target.value)}
-                        className="w-28 px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                        className="w-full sm:w-28 px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
                       />
                     </div>
                   </div>
