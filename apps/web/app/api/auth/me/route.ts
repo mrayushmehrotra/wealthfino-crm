@@ -41,17 +41,6 @@ export async function GET(request: Request) {
       }
     });
 
-    if (!todayAttendance) {
-      todayAttendance = await prisma.attendance.create({
-        data: {
-          employeeId: user.employee.id,
-          date: today,
-          checkIn: new Date(),
-          status: "PRESENT",
-        }
-      });
-    }
-
     if (ip && ip !== user.employee.lastIp) {
       await prisma.employee.update({
         where: { id: user.employee.id },
