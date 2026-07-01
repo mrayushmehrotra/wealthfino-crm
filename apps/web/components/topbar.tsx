@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  IconBell,
   IconMessage,
   IconSearch,
   IconX,
@@ -25,6 +24,7 @@ import {
   IconChartPie,
   IconSettings,
   IconHelp,
+  IconLogout,
 } from "@tabler/icons-react"
 import { staggerContainer } from "@/lib/animation-variants"
 import { useAuth } from "@/hooks/use-data"
@@ -125,12 +125,30 @@ export function Topbar() {
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom)
   const [searchResults, setSearchResults] = useAtom(searchResultsAtom)
   const [searching, setSearching] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
   const router = useRouter()
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" })
+    router.push("/")
+    router.refresh()
+  }
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -317,23 +335,54 @@ export function Topbar() {
 
         <div className="mx-0.5 h-5 w-px bg-[#E5E7EB] sm:mx-1 sm:h-6" />
 
-        <motion.div
-          className="group flex cursor-pointer items-center gap-2.5"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#22C55E]/30 bg-[#22C55E]/20">
-            <span className="text-xs font-bold text-[#22C55E]">{initials}</span>
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-sm leading-none font-semibold text-[#1A202C]">
-              {fullName}
-            </p>
-            <p className="mt-0.5 text-[11px] text-[#6B7280] capitalize">
-              {roleDisplay.toLowerCase()}
-            </p>
-          </div>
-        </motion.div>
+        <div ref={userMenuRef} className="relative">
+          <motion.button
+            onClick={() => setUserMenuOpen((prev) => !prev)}
+            className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1 transition-colors hover:bg-[#F5F7FA]"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#22C55E]/30 bg-[#22C55E]/20">
+              <span className="text-xs font-bold text-[#22C55E]">{initials}</span>
+            </div>
+            <div className="hidden sm:block text-left">
+              <p className="text-sm leading-none font-semibold text-[#1A202C]">
+                {fullName}
+              </p>
+              <p className="mt-0.5 text-[11px] text-[#6B7280] capitalize">
+                {roleDisplay.toLowerCase()}
+              </p>
+            </div>
+          </motion.button>
+
+          <AnimatePresence>
+            {userMenuOpen && (
+              <motion.div
+                className="absolute right-0 top-full mt-1 w-48 rounded-xl border border-[#E5E7EB] bg-white py-1 shadow-lg"
+                initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                transition={{ duration: 0.12 }}
+              >
+                <button
+                  onClick={() => { router.push("/settings"); setUserMenuOpen(false) }}
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-[#1A202C] transition-colors hover:bg-[#F5F7FA]"
+                >
+                  <IconSettings size={16} className="text-[#6B7280]" stroke={1.8} />
+                  Settings
+                </button>
+                <div className="mx-3 h-px bg-[#E5E7EB]" />
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-[#EF4444] transition-colors hover:bg-[#FEF2F2]"
+                >
+                  <IconLogout size={16} stroke={1.8} />
+                  Logout
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Mobile sidebar overlay */}

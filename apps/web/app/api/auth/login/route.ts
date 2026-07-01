@@ -33,6 +33,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (user.frozen) {
+    return NextResponse.json(
+      { success: false, error: { code: "FORBIDDEN", message: "Your account has been frozen. Contact an administrator." } },
+      { status: 403 }
+    );
+  }
+
   const bcrypt = await import("bcryptjs");
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {

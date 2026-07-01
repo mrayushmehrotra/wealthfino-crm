@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono, DM_Sans } from "next/font/google"
+import { Toaster } from "sonner"
 
 import "@workspace/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -30,6 +31,7 @@ export default function RootLayout({
         <JotaiProvider>
           <QueryProvider>
             <ThemeProvider>{children}</ThemeProvider>
+          <Toaster position="top-center" richColors />
           </QueryProvider>
         </JotaiProvider>
       </body>

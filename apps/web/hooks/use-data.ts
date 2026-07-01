@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useAtom, useAtomValue, useSetAtom } from "jotai"
+import { toast } from "sonner"
 import {
   authAtom,
   authLoadingAtom,
@@ -31,11 +32,27 @@ import {
 export function useAuth() {
   const [data, setData] = useAtom(authAtom)
   const [isLoading, setIsLoading] = useAtom(authLoadingAtom)
+  const frozenNotified = useRef(false)
 
   const query = useQuery({
     queryKey: ["auth"],
     queryFn: async () => {
       const res = await fetch("/api/auth/me")
+      if (res.status === 403) {
+        const body = await res.json()
+        if (body.frozen) {
+          if (!frozenNotified.current) {
+            frozenNotified.current = true
+            toast.error("Account Frozen", {
+              description: "Your account has been frozen. Contact an administrator.",
+              duration: Infinity,
+            })
+          }
+          setData(null)
+          setIsLoading(false)
+          return { data: null }
+        }
+      }
       if (!res.ok) throw new Error("Failed to fetch profile")
       return res.json()
     },
@@ -45,6 +62,7 @@ export function useAuth() {
     if (query.data?.data) {
       setData(query.data.data)
       setIsLoading(false)
+      frozenNotified.current = false
     }
     if (query.isError) setIsLoading(false)
   }, [query.data, query.isError, setData, setIsLoading])
@@ -352,6 +370,23 @@ export function useFaqs() {
   }, [query.data, setData])
 
   return { data, isPending: query.isPending }
+}
+
+// ─── Unread Announcements ──────────────────────────────────────────────────
+
+export function useUnreadAnnouncements() {
+  const query = useQuery({
+    queryKey: ["unreadAnnouncements"],
+    queryFn: async () => {
+      const res = await fetch("/api/announcements/unread")
+      if (!res.ok) return 0
+      const json = await res.json()
+      return json.data?.unread ?? 0
+    },
+    refetchInterval: 30000,
+  })
+
+  return { unread: query.data ?? 0, refetch: query.refetch }
 }
 
 // ─── Access Requests ──────────────────────────────────────────────────────

@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { IconPlus, IconSpeakerphone } from "@tabler/icons-react"
+import { useQueryClient } from "@tanstack/react-query"
 import { useAuth, useAnnouncements } from "@/hooks/use-data"
 import {
   fadeInUp,
@@ -22,7 +23,12 @@ export default function AnnouncementsPage() {
   const { data: user } = useAuth()
   const isAdmin = user?.role === "ADMIN"
 
+  const queryClient = useQueryClient()
   const { data: ANNOUNCEMENTS, refetch } = useAnnouncements()
+
+  useEffect(() => {
+    fetch("/api/announcements/read", { method: "POST" }).catch(() => {})
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,6 +50,7 @@ export default function AnnouncementsPage() {
       setBody("")
       setTag("General")
       refetch()
+      queryClient.invalidateQueries({ queryKey: ["unreadAnnouncements"] })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {

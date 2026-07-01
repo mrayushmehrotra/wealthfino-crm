@@ -26,6 +26,7 @@ export async function GET(
           email: true,
           role: true,
           isApproved: true,
+          frozen: true,
         },
       },
       tasks: {
@@ -121,3 +122,5 @@ export async function PATCH(
 
   return NextResponse.json({ success: true, data: updated });
 }
+
+

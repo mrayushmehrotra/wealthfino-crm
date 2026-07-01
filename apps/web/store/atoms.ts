@@ -38,7 +38,7 @@ export interface Employee {
   updatedAt: string | null
   location: string | null
   lastIp: string | null
-  user: { email: string; role: string } | null
+  user: { email: string; role: string; frozen: boolean } | null
   totalAttendance: number
   totalLeaves: number
   totalTasks: number

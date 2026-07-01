@@ -1,17 +1,29 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { useState, useEffect } from "react"
 import { useAtom } from "jotai"
+import { useQueryClient } from "@tanstack/react-query"
 import { employeeDetailIdAtom } from "@/store/atoms"
 import { useAuth, useEmployees, useEmployeeDetail } from "@/hooks/use-data"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
-import { IconSearch, IconLoader2, IconDeviceFloppy, IconUser, IconPhoto, IconCalendar, IconChecklist, IconClock, IconCash } from "@tabler/icons-react"
-
+import {
+  IconSearch,
+  IconLoader2,
+  IconDeviceFloppy,
+  IconUser,
+  IconPhoto,
+  IconCalendar,
+  IconChecklist,
+  IconClock,
+  IconCash,
+} from "@tabler/icons-react"
 export default function SettingsPage() {
   const [selectedId, setSelectedId] = useAtom(employeeDetailIdAtom)
   const [searchQuery, setSearchQuery] = useState("")
   const [saving, setSaving] = useState(false)
+  const [freezing, setFreezing] = useState(false)
+  const [showFreezeModal, setShowFreezeModal] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
 
@@ -27,6 +39,8 @@ export default function SettingsPage() {
     designation: "",
     image: "",
   })
+
+  const queryClient = useQueryClient()
 
   const { data: user } = useAuth()
   const isAdmin = user?.role === "ADMIN"
@@ -59,6 +73,33 @@ export default function SettingsPage() {
     setError("")
   }
 
+  const isFrozen = emp?.user?.frozen ?? false
+
+  const handleFreeze = async () => {
+    if (!selectedId) return
+    setFreezing(true)
+    setSuccess("")
+    setError("")
+    try {
+      const res = await fetch(`/api/employees/${selectedId}/freeze`, {
+        method: "PATCH",
+      })
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || "Failed to update account status")
+      }
+      const json = await res.json()
+      setShowFreezeModal(false)
+      setSuccess(json.message || "Account status updated.")
+      queryClient.invalidateQueries({ queryKey: ["employeeDetail", selectedId] })
+      queryClient.invalidateQueries({ queryKey: ["employees"] })
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setFreezing(false)
+    }
+  }
+
   const handleSave = async () => {
     if (!selectedId) return
     setSaving(true)
@@ -69,12 +110,18 @@ export default function SettingsPage() {
       if (form.firstName !== emp?.firstName) payload.firstName = form.firstName
       if (form.lastName !== emp?.lastName) payload.lastName = form.lastName
       if (form.phone !== (emp?.phone || "")) payload.phone = form.phone || null
-      if (form.address !== (emp?.address || "")) payload.address = form.address || null
-      if (form.aadharCard !== (emp?.aadharCard || "")) payload.aadharCard = form.aadharCard || null
-      if (form.panNumber !== (emp?.panNumber || "")) payload.panNumber = form.panNumber || null
-      if (form.salary !== (emp?.salary != null ? String(emp.salary) : "")) payload.salary = form.salary ? parseFloat(form.salary) : null
-      if (form.department !== (emp?.department || "")) payload.department = form.department || null
-      if (form.designation !== (emp?.designation || "")) payload.designation = form.designation || null
+      if (form.address !== (emp?.address || ""))
+        payload.address = form.address || null
+      if (form.aadharCard !== (emp?.aadharCard || ""))
+        payload.aadharCard = form.aadharCard || null
+      if (form.panNumber !== (emp?.panNumber || ""))
+        payload.panNumber = form.panNumber || null
+      if (form.salary !== (emp?.salary != null ? String(emp.salary) : ""))
+        payload.salary = form.salary ? parseFloat(form.salary) : null
+      if (form.department !== (emp?.department || ""))
+        payload.department = form.department || null
+      if (form.designation !== (emp?.designation || ""))
+        payload.designation = form.designation || null
       if (form.image !== (emp?.image || "")) payload.image = form.image || null
 
       if (Object.keys(payload).length === 0) {
@@ -102,9 +149,10 @@ export default function SettingsPage() {
     }
   }
 
-  const setField = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }))
-  }
+  const setField =
+    (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setForm((prev) => ({ ...prev, [field]: e.target.value }))
+    }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -136,88 +184,120 @@ export default function SettingsPage() {
 
   return (
     <motion.div
-      className="max-w-6xl mx-auto space-y-6"
+      className="mx-auto max-w-6xl space-y-6"
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
     >
       <motion.div variants={fadeInUp}>
         <h1 className="text-2xl font-bold text-[#1A202C]">Settings</h1>
-        <p className="text-sm text-[#6B7280] mt-1">Manage employee details and account information</p>
+        <p className="mt-1 text-sm text-[#6B7280]">
+          Manage employee details and account information
+        </p>
       </motion.div>
 
-      <div className={`grid ${isAdmin ? "grid-cols-1 lg:grid-cols-3" : "grid-cols-1"} gap-6`}>
+      <div
+        className={`grid ${isAdmin ? "grid-cols-1 lg:grid-cols-3" : "grid-cols-1"} gap-6`}
+      >
         {/* Employee Selector — admin only */}
         {isAdmin && (
-        <motion.div
-          variants={slideUp}
-          className="lg:col-span-1 bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
-        >
-          <div className="p-4 border-b border-[#E5E7EB]">
-            <h2 className="font-semibold text-[#1A202C] text-sm flex items-center gap-2">
-              <IconUser size={16} /> Select Employee
-            </h2>
-          </div>
-          <div className="p-3 border-b border-[#E5E7EB]">
-            <div className="relative">
-              <IconSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
-              />
+          <motion.div
+            variants={slideUp}
+            className="rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)] lg:col-span-1"
+          >
+            <div className="border-b border-[#E5E7EB] p-4">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-[#1A202C]">
+                <IconUser size={16} /> Select Employee
+              </h2>
             </div>
-          </div>
-          <div className="max-h-[250px] sm:max-h-[400px] overflow-y-auto">
-            {filtered.map((emp) => (
-              <button
-                key={emp.id}
-                onClick={() => loadEmployee(emp.id)}
-                className={`w-full text-left px-4 py-3 text-sm transition-colors border-b border-[#F3F4F6] last:border-0 hover:bg-[#F9FAFB] ${
-                  selectedId === emp.id ? "bg-[#DCFCE7] border-l-2 border-l-[#22C55E]" : ""
-                }`}
-              >
-                <span className="font-medium text-[#1A202C] block">{emp.firstName} {emp.lastName}</span>
-                <span className="text-[11px] text-[#9CA3AF]">{emp.user?.email || ""}</span>
-              </button>
-            ))}
-            {filtered.length === 0 && (
-              <p className="text-sm text-[#6B7280] text-center py-8">No employees found.</p>
-            )}
-          </div>
-        </motion.div>
+            <div className="border-b border-[#E5E7EB] p-3">
+              <div className="relative">
+                <IconSearch
+                  size={14}
+                  className="absolute top-1/2 left-3 -translate-y-1/2 text-[#9CA3AF]"
+                />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-lg border border-[#E5E7EB] py-2 pr-3 pl-8 text-sm text-[#1A202C] placeholder-[#9CA3AF] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                />
+              </div>
+            </div>
+            <div className="max-h-[250px] overflow-y-auto sm:max-h-[400px]">
+              {filtered.map((emp) => (
+                <button
+                  key={emp.id}
+                  onClick={() => loadEmployee(emp.id)}
+                  className={`w-full border-b border-[#F3F4F6] px-4 py-3 text-left text-sm transition-colors last:border-0 hover:bg-[#F9FAFB] ${
+                    selectedId === emp.id
+                      ? "border-l-2 border-l-[#22C55E] bg-[#DCFCE7]"
+                      : ""
+                  }`}
+                >
+                  <span className="block font-medium text-[#1A202C]">
+                    {emp.firstName} {emp.lastName}
+                  </span>
+                  <span className="text-[11px] text-[#9CA3AF]">
+                    {emp.user?.email || ""}
+                  </span>
+                </button>
+              ))}
+              {filtered.length === 0 && (
+                <p className="py-8 text-center text-sm text-[#6B7280]">
+                  No employees found.
+                </p>
+              )}
+            </div>
+          </motion.div>
         )}
 
         {/* Edit Form */}
         <motion.div
           variants={slideUp}
-          className={`${isAdmin ? "lg:col-span-2" : "lg:col-span-1"} bg-white rounded-xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
+          className={`${isAdmin ? "lg:col-span-2" : "lg:col-span-1"} rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]`}
         >
           {selectedId && emp ? (
             <div>
-              <div className="p-5 border-b border-[#E5E7EB]">
-                <h2 className="font-semibold text-[#1A202C]">
-                  {emp.firstName} {emp.lastName}
-                </h2>
-                <p className="text-xs text-[#6B7280] mt-0.5">{emp.user?.email}</p>
+              <div className="border-b border-[#E5E7EB] p-5">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-semibold text-[#1A202C]">
+                    {emp.firstName} {emp.lastName}
+                  </h2>
+                  {isFrozen && (
+                    <span className="rounded-full bg-[#FEE2E2] px-2 py-0.5 text-[10px] font-bold text-[#EF4444]">
+                      Frozen
+                    </span>
+                  )}
+                </div>
+                <p className="mt-0.5 text-xs text-[#6B7280]">
+                  {emp.user?.email}
+                </p>
               </div>
 
               {success && (
-                <div className="mx-5 mt-4 p-3 bg-[#DCFCE7] text-[#22C55E] text-sm font-medium rounded-lg">{success}</div>
+                <div className="mx-5 mt-4 rounded-lg bg-[#DCFCE7] p-3 text-sm font-medium text-[#22C55E]">
+                  {success}
+                </div>
               )}
               {error && (
-                <div className="mx-5 mt-4 p-3 bg-[#FEE2E2] text-[#EF4444] text-sm font-medium rounded-lg">{error}</div>
+                <div className="mx-5 mt-4 rounded-lg bg-[#FEE2E2] p-3 text-sm font-medium text-[#EF4444]">
+                  {error}
+                </div>
               )}
 
-              <div className="p-5 space-y-6">
+              <div className="space-y-6 p-5">
                 {/* Profile Image & Personal Info */}
-                <div className="flex-col sm:flex-row gap-4 sm:gap-6">
-                  <div className="shrink-0 flex flex-col items-center gap-2">
-                    <div className="h-24 w-24 rounded-full bg-[#DCFCE7] flex items-center justify-center overflow-hidden border-2 border-[#E5E7EB]">
+                <div className="flex-col gap-4 sm:flex-row sm:gap-6">
+                  <div className="flex shrink-0 flex-col items-center gap-2">
+                    <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-[#E5E7EB] bg-[#DCFCE7]">
                       {form.image ? (
-                        <img src={form.image} alt="Profile" className="h-full w-full object-cover" />
+                        <img
+                          src={form.image}
+                          alt="Profile"
+                          className="h-full w-full object-cover"
+                        />
                       ) : (
                         <span className="text-3xl font-bold text-[#22C55E]">
                           {(emp.firstName?.[0] || "").toUpperCase()}
@@ -231,67 +311,86 @@ export default function SettingsPage() {
                         onChange={handleImageUpload}
                         className="hidden"
                       />
-                      <span className="text-xs font-semibold text-[#22C55E] hover:underline flex items-center gap-1">
+                      <span className="flex items-center gap-1 text-xs font-semibold text-[#22C55E] hover:underline">
                         <IconPhoto size={14} /> Upload Photo
                       </span>
                     </label>
                   </div>
                   <div className="flex-1">
-                    <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Profile Image</label>
-                    <p className="text-xs text-[#9CA3AF]">Upload a photo to set as profile image. The image will be stored as base64.</p>
+                    <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                      Profile Image
+                    </label>
+                    <p className="text-xs text-[#9CA3AF]">
+                      Upload a photo to set as profile image. The image will be
+                      stored as base64.
+                    </p>
                   </div>
                 </div>
 
                 {/* Personal Info */}
                 <div>
-                  <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Personal Info</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <h3 className="mb-3 text-xs font-bold tracking-wider text-[#6B7280] uppercase">
+                    Personal Info
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">First Name</label>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        First Name
+                      </label>
                       <input
                         value={form.firstName}
                         onChange={setField("firstName")}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Last Name</label>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        Last Name
+                      </label>
                       <input
                         value={form.lastName}
                         onChange={setField("lastName")}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Phone</label>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        Phone
+                      </label>
                       <input
                         value={form.phone}
                         onChange={setField("phone")}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Department</label>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        Department
+                      </label>
                       <input
                         value={form.department}
                         onChange={setField("department")}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Designation</label>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        Designation
+                      </label>
                       <input
                         value={form.designation}
                         onChange={setField("designation")}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Address</label>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        Address
+                      </label>
                       <input
                         value={form.address}
                         onChange={setField("address")}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
                       />
                     </div>
                   </div>
@@ -299,22 +398,28 @@ export default function SettingsPage() {
 
                 {/* Documents */}
                 <div className="border-t border-[#E5E7EB] pt-6">
-                  <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Documents</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <h3 className="mb-3 text-xs font-bold tracking-wider text-[#6B7280] uppercase">
+                    Documents
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Aadhar Card Number</label>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        Aadhar Card Number
+                      </label>
                       <input
                         value={form.aadharCard}
                         onChange={setField("aadharCard")}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">PAN Number</label>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        PAN Number
+                      </label>
                       <input
                         value={form.panNumber}
                         onChange={setField("panNumber")}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
                       />
                     </div>
                   </div>
@@ -322,15 +427,19 @@ export default function SettingsPage() {
 
                 {/* Financial */}
                 <div className="border-t border-[#E5E7EB] pt-6">
-                  <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Financial</h3>
+                  <h3 className="mb-3 text-xs font-bold tracking-wider text-[#6B7280] uppercase">
+                    Financial
+                  </h3>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-[#1A202C] mb-1.5">Salary (₹)</label>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        Salary (₹)
+                      </label>
                       <input
                         type="number"
                         value={form.salary}
                         onChange={setField("salary")}
-                        className="w-full px-3 py-2 rounded-lg border border-[#E5E7EB] text-sm text-[#1A202C] focus:outline-none focus:ring-2 focus:ring-[#22C55E]/20 focus:border-[#22C55E]"
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
                       />
                     </div>
                   </div>
@@ -338,43 +447,67 @@ export default function SettingsPage() {
 
                 {/* Stats */}
                 <div className="border-t border-[#E5E7EB] pt-6">
-                  <h3 className="text-xs font-bold text-[#6B7280] uppercase tracking-wider mb-3">Statistics (read-only)</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
-                    <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
-                      <p className="text-2xl font-bold text-[#3B82F6]">{emp.totalAttendance ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Attendance</p>
+                  <h3 className="mb-3 text-xs font-bold tracking-wider text-[#6B7280] uppercase">
+                    Statistics (read-only)
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 sm:gap-3">
+                    <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-3 text-center">
+                      <p className="text-2xl font-bold text-[#3B82F6]">
+                        {emp.totalAttendance ?? 0}
+                      </p>
+                      <p className="mt-0.5 text-[10px] font-semibold tracking-wider text-[#6B7280] uppercase">
+                        Attendance
+                      </p>
                     </div>
-                    <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
-                      <p className="text-2xl font-bold text-[#F59E0B]">{emp.totalLeaves ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Leaves</p>
+                    <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-3 text-center">
+                      <p className="text-2xl font-bold text-[#F59E0B]">
+                        {emp.totalLeaves ?? 0}
+                      </p>
+                      <p className="mt-0.5 text-[10px] font-semibold tracking-wider text-[#6B7280] uppercase">
+                        Leaves
+                      </p>
                     </div>
-                    <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
-                      <p className="text-2xl font-bold text-[#22C55E]">{emp.totalCheckIns ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Check-ins</p>
+                    <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-3 text-center">
+                      <p className="text-2xl font-bold text-[#22C55E]">
+                        {emp.totalCheckIns ?? 0}
+                      </p>
+                      <p className="mt-0.5 text-[10px] font-semibold tracking-wider text-[#6B7280] uppercase">
+                        Check-ins
+                      </p>
                     </div>
-                    <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
-                      <p className="text-2xl font-bold text-[#EF4444]">{emp.totalCheckOuts ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Check-outs</p>
+                    <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-3 text-center">
+                      <p className="text-2xl font-bold text-[#EF4444]">
+                        {emp.totalCheckOuts ?? 0}
+                      </p>
+                      <p className="mt-0.5 text-[10px] font-semibold tracking-wider text-[#6B7280] uppercase">
+                        Check-outs
+                      </p>
                     </div>
-                    <div className="bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 text-center">
-                      <p className="text-2xl font-bold text-[#8B5CF6]">{emp.totalTasks ?? 0}</p>
-                      <p className="text-[10px] font-semibold text-[#6B7280] uppercase tracking-wider mt-0.5">Tasks</p>
+                    <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-3 text-center">
+                      <p className="text-2xl font-bold text-[#8B5CF6]">
+                        {emp.totalTasks ?? 0}
+                      </p>
+                      <p className="mt-0.5 text-[10px] font-semibold tracking-wider text-[#6B7280] uppercase">
+                        Tasks
+                      </p>
                     </div>
                   </div>
-                  <div className="mt-3 bg-[#F9FAFB] rounded-lg border border-[#E5E7EB] p-3 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider flex items-center gap-1">
+                  <div className="mt-3 flex items-center justify-between rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-3">
+                    <span className="flex items-center gap-1 text-xs font-semibold tracking-wider text-[#6B7280] uppercase">
                       <IconCash size={14} /> Bonus (on profile)
                     </span>
-                    <span className="text-lg font-bold text-[#1A202C]">₹{(emp.bonus ? Number(emp.bonus) : 0).toLocaleString()}</span>
+                    <span className="text-lg font-bold text-[#1A202C]">
+                      ₹{(emp.bonus ? Number(emp.bonus) : 0).toLocaleString()}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="px-5 pb-5">
+              <div className="flex items-center gap-3 px-5 pb-5">
                 <motion.button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center gap-2 bg-[#22C55E] hover:bg-[#16A34A] disabled:bg-[#9CA3AF] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+                  className="flex items-center gap-2 rounded-lg bg-[#22C55E] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16A34A] disabled:bg-[#9CA3AF]"
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                 >
@@ -385,17 +518,112 @@ export default function SettingsPage() {
                   )}
                   {saving ? "Saving..." : "Save Changes"}
                 </motion.button>
+                {isAdmin && (
+                  <motion.button
+                    onClick={() => setShowFreezeModal(true)}
+                    disabled={freezing}
+                    className="flex items-center gap-2 rounded-lg bg-[#EF4444] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#DC2626] disabled:bg-[#9CA3AF]"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    {freezing ? (
+                      <IconLoader2 size={16} className="animate-spin" />
+                    ) : (
+                      <IconUser size={16} />
+                    )}
+                    {freezing
+                      ? "Updating..."
+                      : isFrozen
+                        ? "Unfreeze Account"
+                        : "Freeze Account"}
+                  </motion.button>
+                )}
               </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <IconUser size={40} className="text-[#D1D5DB] mb-3" />
-              <p className="text-sm font-medium text-[#6B7280]">Select an employee from the list</p>
-              <p className="text-xs text-[#9CA3AF] mt-1">Choose an employee to view and edit their details</p>
+              <IconUser size={40} className="mb-3 text-[#D1D5DB]" />
+              <p className="text-sm font-medium text-[#6B7280]">
+                Select an employee from the list
+              </p>
+              <p className="mt-1 text-xs text-[#9CA3AF]">
+                Choose an employee to view and edit their details
+              </p>
             </div>
           )}
         </motion.div>
       </div>
+      {/* Freeze / Unfreeze Confirmation Modal */}
+      <AnimatePresence>
+        {showFreezeModal && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowFreezeModal(false)}
+          >
+            <motion.div
+              className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {isFrozen ? (
+                <>
+                  <h3 className="mb-2 text-lg font-bold text-[#1A202C]">
+                    Unfreeze Account
+                  </h3>
+                  <p className="mb-6 text-sm text-[#6B7280]">
+                    This will restore access for{" "}
+                    <span className="font-semibold text-[#1A202C]">
+                      {emp?.firstName} {emp?.lastName}
+                    </span>
+                    . They will be able to log in and use the system again.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="mb-2 text-lg font-bold text-[#1A202C]">
+                    Freeze Account
+                  </h3>
+                  <p className="mb-6 text-sm text-[#6B7280]">
+                    Are you sure you want to freeze{" "}
+                    <span className="font-semibold text-[#1A202C]">
+                      {emp?.firstName} {emp?.lastName}
+                    </span>
+                    &#39;s account? They will be unable to log in until an
+                    admin unfreezes them.
+                  </p>
+                </>
+              )}
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setShowFreezeModal(false)}
+                  className="rounded-lg px-4 py-2 text-sm font-semibold text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#1A202C]"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleFreeze}
+                  disabled={freezing}
+                  className="flex items-center gap-2 rounded-lg bg-[#EF4444] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#DC2626] disabled:bg-[#9CA3AF]"
+                >
+                  {freezing && (
+                    <IconLoader2 size={16} className="animate-spin" />
+                  )}
+                  {freezing
+                    ? "Updating..."
+                    : isFrozen
+                      ? "Yes, Unfreeze"
+                      : "Yes, Freeze"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

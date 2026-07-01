@@ -19,6 +19,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
   }
 
+  if (user.frozen) {
+    return NextResponse.json({ success: false, frozen: true, error: "Account frozen" }, { status: 403 });
+  }
+
   // Remove passwordHash
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { passwordHash: _pw, ...safeUser } = user;
