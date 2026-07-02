@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma db push && prisma db seed && next build",
+    "build": "prisma generate && prisma db push && prisma db seed && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
@@ -20,6 +20,7 @@
     "bcryptjs": "^3.0.3",
     "date-fns": "^4.4.0",
     "framer-motion": "^12.42.0",
+    "html2canvas": "1.4.1",
     "jose": "^6.2.3",
     "jotai": "^2.20.1",
     "jsonwebtoken": "^9.0.3",
@@ -32,6 +33,7 @@
     "sonner": "^2.0.7"
   },
   "devDependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.10",

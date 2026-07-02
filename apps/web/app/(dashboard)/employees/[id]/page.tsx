@@ -4,9 +4,22 @@ import { motion } from "framer-motion"
 import { useSetAtom } from "jotai"
 import { employeeDetailIdAtom } from "@/store/atoms"
 import { useEmployeeDetail } from "@/hooks/use-data"
+import { EmployeeLoadingState } from "@/components/employee-loading-state"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect } from "react"
-import { IconArrowLeft, IconMail, IconPhone, IconBriefcase, IconCalendar, IconChecklist, IconLoader2, IconUserCheck, IconBuildingBank, IconCashBanknote, IconFileReport, IconChartLine } from "@tabler/icons-react"
+import {
+  IconArrowLeft,
+  IconMail,
+  IconPhone,
+  IconBriefcase,
+  IconCalendar,
+  IconChecklist,
+  IconUserCheck,
+  IconBuildingBank,
+  IconCashBanknote,
+  IconFileReport,
+  IconChartLine,
+} from "@tabler/icons-react"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
 
 export default function EmployeeProfilePage() {
@@ -16,26 +29,26 @@ export default function EmployeeProfilePage() {
 
   const setEmployeeDetailId = useSetAtom(employeeDetailIdAtom)
 
-  useEffect(() => { setEmployeeDetailId(Number(employeeId)) }, [employeeId, setEmployeeDetailId])
+  useEffect(() => {
+    setEmployeeDetailId(Number(employeeId))
+  }, [employeeId, setEmployeeDetailId])
 
   const { data: emp, isPending: isLoading, error } = useEmployeeDetail()
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <IconLoader2 size={32} className="animate-spin text-[#22C55E]" />
-        <p className="text-[#6B7280] font-medium text-sm">Loading employee profile...</p>
-      </div>
-    )
+    return <EmployeeLoadingState label="Loading employee profile..." />
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <div className="bg-[#FEE2E2] text-[#EF4444] p-4 rounded-xl font-medium">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
+        <div className="rounded-xl bg-[#FEE2E2] p-4 font-medium text-[#EF4444]">
           {error instanceof Error ? error.message : "Failed to load employee"}
         </div>
-        <button onClick={() => router.back()} className="text-[#22C55E] hover:underline font-semibold text-sm">
+        <button
+          onClick={() => router.back()}
+          className="text-sm font-semibold text-[#22C55E] hover:underline"
+        >
           Go back
         </button>
       </div>
@@ -44,9 +57,14 @@ export default function EmployeeProfilePage() {
 
   if (!emp) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <div className="bg-[#FEE2E2] text-[#EF4444] p-4 rounded-xl font-medium">Employee not found.</div>
-        <button onClick={() => router.back()} className="text-[#22C55E] hover:underline font-semibold text-sm">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
+        <div className="rounded-xl bg-[#FEE2E2] p-4 font-medium text-[#EF4444]">
+          Employee not found.
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-sm font-semibold text-[#22C55E] hover:underline"
+        >
           Go back
         </button>
       </div>
@@ -57,14 +75,14 @@ export default function EmployeeProfilePage() {
 
   return (
     <motion.div
-      className="max-w-6xl mx-auto space-y-6"
+      className="mx-auto max-w-6xl space-y-6"
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
     >
       <motion.button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-sm font-semibold text-[#6B7280] hover:text-[#1A202C] transition-colors"
+        className="flex items-center gap-2 text-sm font-semibold text-[#6B7280] transition-colors hover:text-[#1A202C]"
         variants={fadeInUp}
         whileHover={{ x: -2 }}
       >
@@ -72,160 +90,224 @@ export default function EmployeeProfilePage() {
         Back to Employees
       </motion.button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Profile Sidebar */}
         <motion.div
-          className="lg:col-span-1 bg-white rounded-2xl border border-[#E5E7EB] p-4 sm:p-6 lg:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col items-center text-center relative overflow-hidden"
+          className="relative flex flex-col items-center overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white p-4 text-center shadow-[0_4px_20px_rgba(0,0,0,0.03)] sm:p-6 lg:col-span-1 lg:p-8"
           variants={slideUp}
         >
-          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-[#22C55E]/10 to-[#16A34A]/5 z-0" />
-          
+          <div className="absolute top-0 left-0 z-0 h-32 w-full bg-gradient-to-br from-[#22C55E]/10 to-[#16A34A]/5" />
+
           <motion.div
-            className="h-28 w-28 rounded-full bg-white border-4 border-white shadow-md flex items-center justify-center z-10 mt-6 relative"
+            className="relative z-10 mt-6 flex h-28 w-28 items-center justify-center rounded-full border-4 border-white bg-white shadow-md"
             whileHover={{ scale: 1.05 }}
           >
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#22C55E] to-[#16A34A] opacity-10" />
-            <span className="text-4xl font-extrabold bg-gradient-to-br from-[#22C55E] to-[#16A34A] text-transparent bg-clip-text">
+            <span className="bg-gradient-to-br from-[#22C55E] to-[#16A34A] bg-clip-text text-4xl font-extrabold text-transparent">
               {initials}
             </span>
           </motion.div>
-          
+
           <div className="z-10 mt-5 w-full">
-            <h1 className="text-2xl font-bold text-[#1A202C]">{emp.firstName} {emp.lastName}</h1>
-            <p className="text-sm font-medium text-[#22C55E] mt-1 uppercase tracking-wide">{emp.designation || "Employee"}</p>
-            
-            <div className="flex items-center justify-center gap-2 mt-3">
-              <span className="bg-[#EFF6FF] text-[#3B82F6] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+            <h1 className="text-2xl font-bold text-[#1A202C]">
+              {emp.firstName} {emp.lastName}
+            </h1>
+            <p className="mt-1 text-sm font-medium tracking-wide text-[#22C55E] uppercase">
+              {emp.designation || "Employee"}
+            </p>
+
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <span className="rounded-full bg-[#EFF6FF] px-2.5 py-1 text-[10px] font-bold tracking-wider text-[#3B82F6] uppercase">
                 {emp.user?.role || "USER"}
               </span>
-              <span className="bg-[#DCFCE7] text-[#22C55E] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1">
+              <span className="flex items-center gap-1 rounded-full bg-[#DCFCE7] px-2.5 py-1 text-[10px] font-bold tracking-wider text-[#22C55E] uppercase">
                 <IconUserCheck size={12} /> Active
               </span>
             </div>
           </div>
 
-          <div className="w-full mt-8 space-y-4 z-10 text-left">
-            <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#F9FAFB] transition-colors">
-              <div className="h-10 w-10 rounded-lg bg-[#F3F4F6] flex items-center justify-center shrink-0">
+          <div className="z-10 mt-8 w-full space-y-4 text-left">
+            <div className="flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-[#F9FAFB]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F3F4F6]">
                 <IconMail size={18} className="text-[#6B7280]" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Email</p>
-                <p className="text-sm font-medium text-[#1A202C] truncate">{emp.user?.email}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#F9FAFB] transition-colors">
-              <div className="h-10 w-10 rounded-lg bg-[#F3F4F6] flex items-center justify-center shrink-0">
-                <IconPhone size={18} className="text-[#6B7280]" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Phone</p>
-                <p className="text-sm font-medium text-[#1A202C] truncate">{emp.phone || "Not provided"}</p>
+                <p className="text-[11px] font-semibold tracking-wider text-[#9CA3AF] uppercase">
+                  Email
+                </p>
+                <p className="truncate text-sm font-medium text-[#1A202C]">
+                  {emp.user?.email}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-[#F9FAFB] transition-colors">
-              <div className="h-10 w-10 rounded-lg bg-[#F3F4F6] flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-[#F9FAFB]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F3F4F6]">
+                <IconPhone size={18} className="text-[#6B7280]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold tracking-wider text-[#9CA3AF] uppercase">
+                  Phone
+                </p>
+                <p className="truncate text-sm font-medium text-[#1A202C]">
+                  {emp.phone || "Not provided"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-[#F9FAFB]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F3F4F6]">
                 <IconBuildingBank size={18} className="text-[#6B7280]" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Department</p>
-                <p className="text-sm font-medium text-[#1A202C] truncate">{emp.department || "Not Assigned"}</p>
+                <p className="text-[11px] font-semibold tracking-wider text-[#9CA3AF] uppercase">
+                  Department
+                </p>
+                <p className="truncate text-sm font-medium text-[#1A202C]">
+                  {emp.department || "Not Assigned"}
+                </p>
               </div>
             </div>
           </div>
         </motion.div>
 
         {/* Main Content Area */}
-        <div className="lg:col-span-2 space-y-6">
-          
+        <div className="space-y-6 lg:col-span-2">
           {/* Quick Stats */}
-          <motion.div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" variants={staggerContainer}>
-            <motion.div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center gap-4" variants={slideUp}>
-              <div className="h-12 w-12 rounded-xl bg-[#EFF6FF] flex items-center justify-center text-[#3B82F6]">
+          <motion.div
+            className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4"
+            variants={staggerContainer}
+          >
+            <motion.div
+              className="flex items-center gap-4 rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm"
+              variants={slideUp}
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#3B82F6]">
                 <IconCalendar size={24} stroke={1.5} />
               </div>
               <div>
-                <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">Joined Date</p>
-                <p className="text-lg font-bold text-[#1A202C] mt-0.5">
-                  {new Date(emp.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                <p className="text-xs font-semibold tracking-wider text-[#6B7280] uppercase">
+                  Joined Date
+                </p>
+                <p className="mt-0.5 text-lg font-bold text-[#1A202C]">
+                  {new Date(emp.joinedAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
             </motion.div>
-            
-            <motion.div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center gap-4" variants={slideUp}>
-              <div className="h-12 w-12 rounded-xl bg-[#F5F3FF] flex items-center justify-center text-[#8B5CF6]">
+
+            <motion.div
+              className="flex items-center gap-4 rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm"
+              variants={slideUp}
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F5F3FF] text-[#8B5CF6]">
                 <IconChecklist size={24} stroke={1.5} />
               </div>
               <div>
-                <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">Total Tasks</p>
-                <p className="text-lg font-bold text-[#1A202C] mt-0.5">{emp.tasks?.length || 0}</p>
+                <p className="text-xs font-semibold tracking-wider text-[#6B7280] uppercase">
+                  Total Tasks
+                </p>
+                <p className="mt-0.5 text-lg font-bold text-[#1A202C]">
+                  {emp.tasks?.length || 0}
+                </p>
               </div>
             </motion.div>
           </motion.div>
 
           {/* Tasks */}
-          <motion.div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6" variants={slideUp}>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-[#1A202C] flex items-center gap-2">
+          <motion.div
+            className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
+            variants={slideUp}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-[#1A202C]">
                 <IconChecklist className="text-[#22C55E]" size={20} /> Tasks
               </h2>
             </div>
-            
+
             {emp.tasks?.length > 0 ? (
-              <div className="space-y-3 max-h-80 overflow-y-auto">
+              <div className="max-h-80 space-y-3 overflow-y-auto">
                 {emp.tasks.map((task: any) => (
-                  <div key={task.id} className="flex items-center justify-between p-4 rounded-xl border border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between rounded-xl border border-[#F3F4F6] p-4 transition-colors hover:bg-[#F9FAFB]"
+                  >
                     <div>
-                      <p className="text-sm font-semibold text-[#1A202C]">{task.title}</p>
-                      <p className="text-xs text-[#6B7280] mt-1 line-clamp-1">{task.description || "No description provided."}</p>
+                      <p className="text-sm font-semibold text-[#1A202C]">
+                        {task.title}
+                      </p>
+                      <p className="mt-1 line-clamp-1 text-xs text-[#6B7280]">
+                        {task.description || "No description provided."}
+                      </p>
                     </div>
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0 ${
-                      task.status === "DONE" ? "bg-[#DCFCE7] text-[#22C55E]" : 
-                      task.status === "IN_PROGRESS" ? "bg-[#FEF3C7] text-[#F59E0B]" : 
-                      "bg-[#F3F4F6] text-[#6B7280]"
-                    }`}>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase ${
+                        task.status === "DONE"
+                          ? "bg-[#DCFCE7] text-[#22C55E]"
+                          : task.status === "IN_PROGRESS"
+                            ? "bg-[#FEF3C7] text-[#F59E0B]"
+                            : "bg-[#F3F4F6] text-[#6B7280]"
+                      }`}
+                    >
                       {task.status}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 bg-[#F9FAFB] rounded-xl border border-dashed border-[#E5E7EB]">
-                <p className="text-sm font-medium text-[#6B7280]">No tasks assigned yet.</p>
+              <div className="rounded-xl border border-dashed border-[#E5E7EB] bg-[#F9FAFB] py-8 text-center">
+                <p className="text-sm font-medium text-[#6B7280]">
+                  No tasks assigned yet.
+                </p>
               </div>
             )}
           </motion.div>
 
           {/* Attendance */}
-          <motion.div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6" variants={slideUp}>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-[#1A202C] flex items-center gap-2">
-                <IconBriefcase className="text-[#3B82F6]" size={20} /> Attendance
+          <motion.div
+            className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
+            variants={slideUp}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-[#1A202C]">
+                <IconBriefcase className="text-[#3B82F6]" size={20} />{" "}
+                Attendance
               </h2>
             </div>
-            
+
             {emp.attendance?.length > 0 ? (
-              <div className="overflow-hidden border border-[#F3F4F6] rounded-xl max-h-60 overflow-y-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-[#F9FAFB] border-b border-[#F3F4F6]">
+              <div className="max-h-60 overflow-hidden overflow-y-auto rounded-xl border border-[#F3F4F6]">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-[#F3F4F6] bg-[#F9FAFB]">
                     <tr>
-                      <th className="px-4 py-3 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Date</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-[11px] font-bold tracking-wider text-[#6B7280] uppercase">
+                        Date
+                      </th>
+                      <th className="px-4 py-3 text-[11px] font-bold tracking-wider text-[#6B7280] uppercase">
+                        Status
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F3F4F6]">
                     {emp.attendance.map((record: any) => (
-                      <tr key={record.id} className="hover:bg-[#F9FAFB]/50 transition-colors">
+                      <tr
+                        key={record.id}
+                        className="transition-colors hover:bg-[#F9FAFB]/50"
+                      >
                         <td className="px-4 py-3 font-medium text-[#1A202C]">
-                          {new Date(record.date).toLocaleDateString('en-GB')}
+                          {new Date(record.date).toLocaleDateString("en-GB")}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
-                            record.status === "PRESENT" ? "bg-[#DCFCE7] text-[#22C55E]" : 
-                            "bg-[#FEE2E2] text-[#EF4444]"
-                          }`}>
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase ${
+                              record.status === "PRESENT"
+                                ? "bg-[#DCFCE7] text-[#22C55E]"
+                                : "bg-[#FEE2E2] text-[#EF4444]"
+                            }`}
+                          >
                             {record.status}
                           </span>
                         </td>
@@ -235,82 +317,123 @@ export default function EmployeeProfilePage() {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-8 bg-[#F9FAFB] rounded-xl border border-dashed border-[#E5E7EB]">
-                <p className="text-sm font-medium text-[#6B7280]">No attendance records found.</p>
+              <div className="rounded-xl border border-dashed border-[#E5E7EB] bg-[#F9FAFB] py-8 text-center">
+                <p className="text-sm font-medium text-[#6B7280]">
+                  No attendance records found.
+                </p>
               </div>
             )}
           </motion.div>
 
           {/* Leaves */}
-          <motion.div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6" variants={slideUp}>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-[#1A202C] flex items-center gap-2">
-                <IconCalendar className="text-[#8B5CF6]" size={20} /> Leave Requests
+          <motion.div
+            className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
+            variants={slideUp}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-[#1A202C]">
+                <IconCalendar className="text-[#8B5CF6]" size={20} /> Leave
+                Requests
               </h2>
             </div>
-            
+
             {emp.leaveRequests?.length > 0 ? (
-              <div className="space-y-3 max-h-80 overflow-y-auto">
+              <div className="max-h-80 space-y-3 overflow-y-auto">
                 {emp.leaveRequests.map((leave: any) => (
-                  <div key={leave.id} className="flex flex-col p-4 rounded-xl border border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
+                  <div
+                    key={leave.id}
+                    className="flex flex-col rounded-xl border border-[#F3F4F6] p-4 transition-colors hover:bg-[#F9FAFB]"
+                  >
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-[#1A202C]">{leave.type} Leave</p>
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
-                        leave.status === "APPROVED" ? "bg-[#DCFCE7] text-[#22C55E]" : 
-                        leave.status === "REJECTED" ? "bg-[#FEE2E2] text-[#EF4444]" : 
-                        "bg-[#FEF3C7] text-[#F59E0B]"
-                      }`}>
+                      <p className="text-sm font-semibold text-[#1A202C]">
+                        {leave.type} Leave
+                      </p>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase ${
+                          leave.status === "APPROVED"
+                            ? "bg-[#DCFCE7] text-[#22C55E]"
+                            : leave.status === "REJECTED"
+                              ? "bg-[#FEE2E2] text-[#EF4444]"
+                              : "bg-[#FEF3C7] text-[#F59E0B]"
+                        }`}
+                      >
                         {leave.status}
                       </span>
                     </div>
-                    <p className="text-xs text-[#6B7280] mt-1">
-                      {new Date(leave.fromDate).toLocaleDateString('en-GB')} to {new Date(leave.toDate).toLocaleDateString('en-GB')} ({leave.days} days)
+                    <p className="mt-1 text-xs text-[#6B7280]">
+                      {new Date(leave.fromDate).toLocaleDateString("en-GB")} to{" "}
+                      {new Date(leave.toDate).toLocaleDateString("en-GB")} (
+                      {leave.days} days)
                     </p>
                     {leave.reason && (
-                      <p className="text-xs text-[#6B7280] mt-2 italic border-l-2 border-[#E5E7EB] pl-2">{leave.reason}</p>
+                      <p className="mt-2 border-l-2 border-[#E5E7EB] pl-2 text-xs text-[#6B7280] italic">
+                        {leave.reason}
+                      </p>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 bg-[#F9FAFB] rounded-xl border border-dashed border-[#E5E7EB]">
-                <p className="text-sm font-medium text-[#6B7280]">No leave records found.</p>
+              <div className="rounded-xl border border-dashed border-[#E5E7EB] bg-[#F9FAFB] py-8 text-center">
+                <p className="text-sm font-medium text-[#6B7280]">
+                  No leave records found.
+                </p>
               </div>
             )}
           </motion.div>
 
           {/* Payroll */}
-          <motion.div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6" variants={slideUp}>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-[#1A202C] flex items-center gap-2">
-                <IconCashBanknote className="text-[#F59E0B]" size={20} /> Payroll
+          <motion.div
+            className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
+            variants={slideUp}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-[#1A202C]">
+                <IconCashBanknote className="text-[#F59E0B]" size={20} />{" "}
+                Payroll
               </h2>
             </div>
-            
+
             {emp.payroll?.length > 0 ? (
-              <div className="overflow-hidden border border-[#F3F4F6] rounded-xl max-h-60 overflow-y-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-[#F9FAFB] border-b border-[#F3F4F6]">
+              <div className="max-h-60 overflow-hidden overflow-y-auto rounded-xl border border-[#F3F4F6]">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-[#F3F4F6] bg-[#F9FAFB]">
                     <tr>
-                      <th className="px-4 py-3 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Month/Year</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Net Pay</th>
-                      <th className="px-4 py-3 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-[11px] font-bold tracking-wider text-[#6B7280] uppercase">
+                        Month/Year
+                      </th>
+                      <th className="px-4 py-3 text-[11px] font-bold tracking-wider text-[#6B7280] uppercase">
+                        Net Pay
+                      </th>
+                      <th className="px-4 py-3 text-[11px] font-bold tracking-wider text-[#6B7280] uppercase">
+                        Status
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F3F4F6]">
                     {emp.payroll.map((pay: any) => (
-                      <tr key={pay.id} className="hover:bg-[#F9FAFB]/50 transition-colors">
+                      <tr
+                        key={pay.id}
+                        className="transition-colors hover:bg-[#F9FAFB]/50"
+                      >
                         <td className="px-4 py-3 font-medium text-[#1A202C]">
-                          {new Date(pay.year, pay.month).toLocaleString('default', { month: 'short' })} {pay.year}
+                          {new Date(pay.year, pay.month).toLocaleString(
+                            "default",
+                            { month: "short" }
+                          )}{" "}
+                          {pay.year}
                         </td>
                         <td className="px-4 py-3 font-bold text-[#22C55E]">
-                          ₹{Number(pay.netPay).toLocaleString('en-IN')}
+                          ₹{Number(pay.netPay).toLocaleString("en-IN")}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
-                            pay.status === "PAID" ? "bg-[#DCFCE7] text-[#22C55E]" : 
-                            "bg-[#FEF3C7] text-[#F59E0B]"
-                          }`}>
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase ${
+                              pay.status === "PAID"
+                                ? "bg-[#DCFCE7] text-[#22C55E]"
+                                : "bg-[#FEF3C7] text-[#F59E0B]"
+                            }`}
+                          >
                             {pay.status}
                           </span>
                         </td>
@@ -320,43 +443,60 @@ export default function EmployeeProfilePage() {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-8 bg-[#F9FAFB] rounded-xl border border-dashed border-[#E5E7EB]">
-                <p className="text-sm font-medium text-[#6B7280]">No payroll records found.</p>
+              <div className="rounded-xl border border-dashed border-[#E5E7EB] bg-[#F9FAFB] py-8 text-center">
+                <p className="text-sm font-medium text-[#6B7280]">
+                  No payroll records found.
+                </p>
               </div>
             )}
           </motion.div>
 
           {/* Daily Reports */}
-          <motion.div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6" variants={slideUp}>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-[#1A202C] flex items-center gap-2">
-                <IconFileReport className="text-[#EC4899]" size={20} /> Daily Reports & Analysis
+          <motion.div
+            className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
+            variants={slideUp}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-[#1A202C]">
+                <IconFileReport className="text-[#EC4899]" size={20} /> Daily
+                Reports & Analysis
               </h2>
             </div>
-            
+
             {emp.dailyReports?.length > 0 ? (
-              <div className="space-y-3 max-h-80 overflow-y-auto">
+              <div className="max-h-80 space-y-3 overflow-y-auto">
                 {emp.dailyReports.map((report: any) => (
-                  <div key={report.id} className="flex flex-col p-4 rounded-xl border border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
+                  <div
+                    key={report.id}
+                    className="flex flex-col rounded-xl border border-[#F3F4F6] p-4 transition-colors hover:bg-[#F9FAFB]"
+                  >
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold text-[#1A202C]">
-                        {new Date(report.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        {new Date(report.date).toLocaleDateString("en-US", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
                       </p>
-                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-[#EFF6FF] text-[#3B82F6] uppercase tracking-wider">
+                      <span className="rounded-full bg-[#EFF6FF] px-2.5 py-1 text-[10px] font-bold tracking-wider text-[#3B82F6] uppercase">
                         {report.hoursLogged} hours logged
                       </span>
                     </div>
-                    <p className="text-xs text-[#6B7280] mt-2 whitespace-pre-line">{report.summary}</p>
+                    <p className="mt-2 text-xs whitespace-pre-line text-[#6B7280]">
+                      {report.summary}
+                    </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 bg-[#F9FAFB] rounded-xl border border-dashed border-[#E5E7EB]">
-                <p className="text-sm font-medium text-[#6B7280]">No daily reports submitted.</p>
+              <div className="rounded-xl border border-dashed border-[#E5E7EB] bg-[#F9FAFB] py-8 text-center">
+                <p className="text-sm font-medium text-[#6B7280]">
+                  No daily reports submitted.
+                </p>
               </div>
             )}
           </motion.div>
-
         </div>
       </div>
     </motion.div>

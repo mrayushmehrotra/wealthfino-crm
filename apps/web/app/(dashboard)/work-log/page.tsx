@@ -209,6 +209,17 @@ export default function WorkLogPage() {
             </button>
 
             <button
+              onClick={async () => {
+                const { downloadHtmlAsPdf } = await import("@/lib/download-report")
+                downloadHtmlAsPdf(`/api/work-log/report?date=${dateStr}`, `work-report-${dateStr}.pdf`)
+              }}
+              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-[#E5E7EB] text-sm font-semibold text-[#6B7280] hover:bg-[#F9FAFB] transition-colors w-full sm:w-auto"
+            >
+              <IconDownload size={16} />
+              Report
+            </button>
+
+            <button
               onClick={syncToDatabase}
               disabled={savingState === "saving"}
               className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all w-full sm:w-auto ${

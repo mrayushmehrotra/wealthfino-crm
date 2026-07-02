@@ -109,7 +109,7 @@ function ConfirmModal({
 
 export default function AttendancePage() {
   const { data: attendanceData, refetch } = useAttendance()
-  const { user } = useAuth()
+  const { data:user } = useAuth()
   const stats = attendanceData?.stats || { present: 0, absent: 0, onLeave: 0 }
   const role = attendanceData?.role || "ADMIN"
   const ATTENDANCE: { date?: string; employee: { id: number; firstName: string; lastName: string; department: string | null }; attendance: { checkIn: string | null; checkOut: string | null } | null; status: string }[] = attendanceData?.records || []

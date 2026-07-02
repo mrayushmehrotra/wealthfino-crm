@@ -1,12 +1,21 @@
 import type { NextConfig } from "next"
+import withPWAInit from "@ducanh2912/next-pwa"
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  workboxOptions: {
+    importScripts: ["/sw-push-handler.js"],
+  },
+})
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@workspace/ui"],
   output: "standalone",
   typescript: {
-    // Suppress TypeScript errors during build — type errors won't abort deployment
     ignoreBuildErrors: true,
   },
+  turbopack: {},
 }
 
-export default nextConfig
+export default withPWA(nextConfig)

@@ -1,55 +1,24 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose";
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-// Routes that only admins can access
-const ADMIN_ONLY_ROUTES = [
-  "/access-requests",
-  "/employees",
-  "/reports",
-];
+const publicRoutes = ["/"]
+const authApiRoutes = ["/api/auth/login", "/api/auth/logout"]
 
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  const token = request.cookies.get("token")?.value
 
-  const token = request.cookies.get("token")?.value;
-
-  // If no token at all, let the layout handle the redirect to /
-  if (!token) return NextResponse.next();
-
-  // Check if this path is admin-only
-  const isAdminRoute = ADMIN_ONLY_ROUTES.some((route) =>
-    pathname === route || pathname.startsWith(route + "/")
-  );
-
-  if (!isAdminRoute) return NextResponse.next();
-
-  // Decode the JWT (without a DB call - fast edge-compatible)
-  try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
-    const { payload } = await jwtVerify(token, secret);
-    const role = payload.role as string;
-
-    if (role !== "ADMIN") {
-      // Redirect employees to dashboard with a flash message via search param
-      const redirectUrl = new URL("/dashboard", request.url);
-      redirectUrl.searchParams.set("blocked", "1");
-      return NextResponse.redirect(redirectUrl);
-    }
-  } catch {
-    // Invalid token — clear it and redirect to login
-    const response = NextResponse.redirect(new URL("/", request.url));
-    response.cookies.delete("token");
-    return response;
+  if (token && publicRoutes.includes(pathname)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
-  return NextResponse.next();
+  if (!token && !publicRoutes.includes(pathname) && !authApiRoutes.includes(pathname) && !pathname.startsWith("/api/auth") && !pathname.startsWith("/_next") && !pathname.startsWith("/logo.png")) {
+    return NextResponse.redirect(new URL("/", request.url))
+  }
+
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: [
-    "/access-requests/:path*",
-    "/employees/:path*",
-    "/reports/:path*",
-  ],
-};
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
+}

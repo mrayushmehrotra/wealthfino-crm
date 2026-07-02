@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useEmployees } from "@/hooks/use-data"
+import { EmployeeLoadingState } from "@/components/employee-loading-state"
 import {
   IconPlus,
   IconSearch,
@@ -54,7 +55,11 @@ export default function EmployeesPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
-  const { data: EMPLOYEES } = useEmployees()
+  const { data: EMPLOYEES, isPending } = useEmployees()
+
+  if (isPending) {
+    return <EmployeeLoadingState label="Loading employees..." />
+  }
 
   const filtered = EMPLOYEES.filter((emp) => {
     if (!searchQuery) return true
@@ -412,4 +417,3 @@ export default function EmployeesPage() {
     </motion.div>
   )
 }
-

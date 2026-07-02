@@ -11,6 +11,7 @@ import { useIsFetching } from "@tanstack/react-query"
 import {
   IconLayoutDashboard,
   IconUsers,
+  IconUserPlus,
   IconCalendarCheck,
   IconBeach,
   IconChecklist,
@@ -40,6 +41,7 @@ const NAV_ITEMS = [
   },
   { label: "Employees", href: "/employees", icon: IconUsers, adminOnly: true },
   { label: "Attendance", href: "/attendance", icon: IconCalendarCheck },
+  { label: "Leads", href: "/leads", icon: IconUserPlus },
   { label: "Leave Management", href: "/leave-management", icon: IconBeach },
   { label: "Task Management", href: "/task-management", icon: IconChecklist },
   { label: "Daily Reports", href: "/daily-reports", icon: IconFileReport },
@@ -82,6 +84,7 @@ export function Sidebar({
     "Access Requests": false,
     "Employees": isFetchingEmployees,
     "Attendance": isFetchingAttendance,
+    "Leads": false,
     "Leave Management": isFetchingLeaves,
     "Task Management": isFetchingTasks,
     "Daily Reports": isFetchingReports,

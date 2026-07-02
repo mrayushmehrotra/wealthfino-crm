@@ -6,6 +6,10 @@ import { useAtom } from "jotai"
 import { useQueryClient } from "@tanstack/react-query"
 import { employeeDetailIdAtom } from "@/store/atoms"
 import { useAuth, useEmployees, useEmployeeDetail } from "@/hooks/use-data"
+import {
+  getPushSubscriptionState,
+  unsubscribeFromPush,
+} from "@/components/push-notification-bootstrap"
 import { fadeInUp, staggerContainer, slideUp } from "@/lib/animation-variants"
 import {
   IconSearch,
@@ -17,12 +21,19 @@ import {
   IconChecklist,
   IconClock,
   IconCash,
+  IconBell,
+  IconBellOff,
+  IconDeviceMobile,
 } from "@tabler/icons-react"
 export default function SettingsPage() {
   const [selectedId, setSelectedId] = useAtom(employeeDetailIdAtom)
   const [searchQuery, setSearchQuery] = useState("")
   const [saving, setSaving] = useState(false)
   const [freezing, setFreezing] = useState(false)
+  const [pushSaving, setPushSaving] = useState(false)
+  const [pushState, setPushState] = useState<
+    "enabled" | "disabled" | "denied" | "unsupported" | "loading"
+  >("loading")
   const [showFreezeModal, setShowFreezeModal] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
@@ -45,7 +56,7 @@ export default function SettingsPage() {
   const { data: user } = useAuth()
   const isAdmin = user?.role === "ADMIN"
 
-  const { data: employees } = useEmployees()
+  const { data: employees, isPending: employeesLoading } = useEmployees()
 
   useEffect(() => {
     if (!isAdmin && user?.employee?.id) {
@@ -75,6 +86,20 @@ export default function SettingsPage() {
 
   const isFrozen = emp?.user?.frozen ?? false
 
+  useEffect(() => {
+    let mounted = true
+    const loadPushState = async () => {
+      const state = await getPushSubscriptionState().catch(
+        () => "unsupported" as const
+      )
+      if (mounted) setPushState(state)
+    }
+    loadPushState()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   const handleFreeze = async () => {
     if (!selectedId) return
     setFreezing(true)
@@ -91,7 +116,9 @@ export default function SettingsPage() {
       const json = await res.json()
       setShowFreezeModal(false)
       setSuccess(json.message || "Account status updated.")
-      queryClient.invalidateQueries({ queryKey: ["employeeDetail", selectedId] })
+      queryClient.invalidateQueries({
+        queryKey: ["employeeDetail", selectedId],
+      })
       queryClient.invalidateQueries({ queryKey: ["employees"] })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong")
@@ -154,6 +181,88 @@ export default function SettingsPage() {
       setForm((prev) => ({ ...prev, [field]: e.target.value }))
     }
 
+  const handleEnablePush = async () => {
+    setPushSaving(true)
+    setError("")
+    setSuccess("")
+    try {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+        throw new Error("This browser does not support push notifications.")
+      }
+
+      const permission = await Notification.requestPermission()
+      if (permission !== "granted") {
+        setPushState(permission === "denied" ? "denied" : "disabled")
+        throw new Error("Notification permission was not granted.")
+      }
+
+      const registration = await navigator.serviceWorker.ready
+      const existing = await registration.pushManager.getSubscription()
+      if (existing) {
+        await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(existing.toJSON()),
+        })
+        setPushState("enabled")
+        setSuccess("Push notifications are already enabled.")
+        return
+      }
+
+      const publicKeyRes = await fetch("/api/push/public-key", {
+        cache: "no-store",
+      })
+      if (!publicKeyRes.ok) throw new Error("Failed to load push key.")
+      const publicKeyData = await publicKeyRes.json()
+      const publicKey = publicKeyData?.data?.publicKey
+      if (!publicKey) throw new Error("Push key is missing.")
+
+      const base64ToUint8Array = (base64String: string) => {
+        const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
+        const base64 = (base64String + padding)
+          .replace(/-/g, "+")
+          .replace(/_/g, "/")
+        const raw = window.atob(base64)
+        return Uint8Array.from(raw, (char) => char.charCodeAt(0))
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: base64ToUint8Array(publicKey),
+      })
+
+      const res = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(subscription.toJSON()),
+      })
+      if (!res.ok) throw new Error("Failed to save subscription.")
+
+      setPushState("enabled")
+      setSuccess("Push notifications enabled for this device.")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setPushSaving(false)
+    }
+  }
+
+  const handleDisablePush = async () => {
+    setPushSaving(true)
+    setError("")
+    setSuccess("")
+    try {
+      const disabled = await unsubscribeFromPush()
+      if (!disabled) throw new Error("No push subscription found.")
+      setPushState("disabled")
+      setSuccess("Push notifications disabled for this device.")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setPushSaving(false)
+    }
+  }
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -196,6 +305,68 @@ export default function SettingsPage() {
         </p>
       </motion.div>
 
+      <motion.div
+        variants={slideUp}
+        className="rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+      >
+        <div className="flex flex-col gap-4 border-b border-[#E5E7EB] p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#DCFCE7]">
+              <IconBell size={20} className="text-[#22C55E]" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-[#1A202C]">
+                Push notifications
+              </h2>
+              <p className="mt-1 text-sm text-[#6B7280]">
+                Get announcement alerts on this installed web app.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-xs font-semibold text-[#6B7280]">
+              {pushState === "enabled"
+                ? "Enabled"
+                : pushState === "denied"
+                  ? "Blocked"
+                  : pushState === "unsupported"
+                    ? "Unsupported"
+                    : "Disabled"}
+            </span>
+            {pushState === "enabled" ? (
+              <button
+                type="button"
+                onClick={handleDisablePush}
+                disabled={pushSaving}
+                className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] px-4 py-2 text-sm font-semibold text-[#1A202C] transition-colors hover:bg-[#F9FAFB] disabled:opacity-60"
+              >
+                <IconBellOff size={16} />
+                {pushSaving ? "Disabling..." : "Disable"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleEnablePush}
+                disabled={pushSaving || pushState === "unsupported"}
+                className="inline-flex items-center gap-2 rounded-lg bg-[#22C55E] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#16A34A] disabled:bg-[#9CA3AF]"
+              >
+                <IconDeviceMobile size={16} />
+                {pushSaving ? "Enabling..." : "Enable on this device"}
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="p-5 text-sm text-[#6B7280]">
+          {pushState === "enabled"
+            ? "This device will receive announcement push notifications."
+            : pushState === "denied"
+              ? "Notifications are blocked in the browser. Re-enable them in browser settings to receive alerts."
+              : pushState === "unsupported"
+                ? "This browser does not support push notifications."
+                : "Enable notifications to receive announcement push alerts on this device."}
+        </div>
+      </motion.div>
+
       <div
         className={`grid ${isAdmin ? "grid-cols-1 lg:grid-cols-3" : "grid-cols-1"} gap-6`}
       >
@@ -226,28 +397,36 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="max-h-[250px] overflow-y-auto sm:max-h-[400px]">
-              {filtered.map((emp) => (
-                <button
-                  key={emp.id}
-                  onClick={() => loadEmployee(emp.id)}
-                  className={`w-full border-b border-[#F3F4F6] px-4 py-3 text-left text-sm transition-colors last:border-0 hover:bg-[#F9FAFB] ${
-                    selectedId === emp.id
-                      ? "border-l-2 border-l-[#22C55E] bg-[#DCFCE7]"
-                      : ""
-                  }`}
-                >
-                  <span className="block font-medium text-[#1A202C]">
-                    {emp.firstName} {emp.lastName}
-                  </span>
-                  <span className="text-[11px] text-[#9CA3AF]">
-                    {emp.user?.email || ""}
-                  </span>
-                </button>
-              ))}
-              {filtered.length === 0 && (
+              {employeesLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <IconLoader2
+                    size={24}
+                    className="animate-spin text-[#22C55E]"
+                  />
+                </div>
+              ) : filtered.length === 0 ? (
                 <p className="py-8 text-center text-sm text-[#6B7280]">
                   No employees found.
                 </p>
+              ) : (
+                filtered.map((emp) => (
+                  <button
+                    key={emp.id}
+                    onClick={() => loadEmployee(emp.id)}
+                    className={`w-full border-b border-[#F3F4F6] px-4 py-3 text-left text-sm transition-colors last:border-0 hover:bg-[#F9FAFB] ${
+                      selectedId === emp.id
+                        ? "border-l-2 border-l-[#22C55E] bg-[#DCFCE7]"
+                        : ""
+                    }`}
+                  >
+                    <span className="block font-medium text-[#1A202C]">
+                      {emp.firstName} {emp.lastName}
+                    </span>
+                    <span className="text-[11px] text-[#9CA3AF]">
+                      {emp.user?.email || ""}
+                    </span>
+                  </button>
+                ))
               )}
             </div>
           </motion.div>
@@ -593,8 +772,8 @@ export default function SettingsPage() {
                     <span className="font-semibold text-[#1A202C]">
                       {emp?.firstName} {emp?.lastName}
                     </span>
-                    &#39;s account? They will be unable to log in until an
-                    admin unfreezes them.
+                    &#39;s account? They will be unable to log in until an admin
+                    unfreezes them.
                   </p>
                 </>
               )}

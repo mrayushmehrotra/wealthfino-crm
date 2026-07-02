@@ -26,6 +26,7 @@ model User {
   frozen       Boolean   @default(false)
   employee     Employee?
   announcementReads AnnouncementRead[]
+  pushSubscriptions PushSubscription[]
 
   @@map("users")
 }
@@ -56,6 +57,7 @@ model Employee {
   payrollDownloadRequests PayrollDownloadRequest[]
   lastIp                  String?        @map("last_ip")
   image                   String?        @db.Text
+  leads                   Lead[]
 
   @@map("employees")
 }
@@ -255,4 +257,35 @@ model PayrollDownloadRequest {
   @@index([employeeId])
   @@index([status], map: "pdr_status_idx")
   @@map("payroll_download_requests")
+}
+
+model Lead {
+  id          Int       @id @default(autoincrement())
+  name        String
+  email       String?
+  phone       String?
+  source      String?
+  status      String    @default("New")
+  notes       String?   @db.Text
+  assignedTo  Int?      @map("assigned_to")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  assignedEmployee Employee? @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
+
+  @@index([assignedTo])
+  @@map("leads")
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  endpoint  String   @unique
+  p256dh    String   @map("p256dh")
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
