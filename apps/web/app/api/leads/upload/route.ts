@@ -47,10 +47,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "CSV must have a header row and at least one data row" }, { status: 400 });
     }
 
-    const rawHeaders = parseRow(lines[0]!).map((h) => h.toLowerCase());
+    const normalizeHeader = (value: string) =>
+      value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim()
+        .replace(/\s+/g, " ");
+
+    const rawHeaders = parseRow(lines[0]!).map(normalizeHeader);
     const nameIdx = rawHeaders.findIndex((h) => h === "name" || h === "full name" || h === "lead name");
     const emailIdx = rawHeaders.findIndex((h) => h.includes("email"));
-    const phoneIdx = rawHeaders.findIndex((h) => h.includes("phone") || h.includes("mobile") || h.includes("contact"));
+    const phoneIdx = rawHeaders.findIndex((h) =>
+      [
+        "phone",
+        "phone number",
+        "mobile",
+        "mobile number",
+        "contact",
+        "contact number",
+        "number",
+        "telephone",
+        "tel",
+        "whatsapp",
+      ].some((alias) => h === alias || h.includes(alias))
+    );
     const sourceIdx = rawHeaders.findIndex((h) => h === "source" || h === "lead source");
 
     if (nameIdx === -1) {
