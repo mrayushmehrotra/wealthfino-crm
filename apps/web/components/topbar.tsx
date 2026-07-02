@@ -303,7 +303,10 @@ export function Topbar() {
 
         {/* Check-In Modal overlay */}
         <Dialog open={showCheckInModal} onOpenChange={() => {}}>
-          <DialogContent className="border border-[#E5E7EB] bg-white p-6 text-center sm:max-w-[400px] [&>button]:hidden">
+          <DialogContent
+            showCloseButton={false}
+            className="border border-[#E5E7EB] bg-white p-6 text-center sm:max-w-[400px]"
+          >
             <DialogHeader className="mb-4">
               <DialogTitle className="text-xl font-bold text-[#1A202C]">
                 Good Morning, {user?.employee?.firstName}!
@@ -320,7 +323,7 @@ export function Topbar() {
               whileHover={!isCheckingIn ? { scale: 1.02 } : {}}
               whileTap={!isCheckingIn ? { scale: 0.98 } : {}}
             >
-              {isCheckingIn ? "Checking In..." : "Check In Now"}
+              {isCheckingIn ? "Checking In..." : "Check In Now ✓"}
             </motion.button>
           </DialogContent>
         </Dialog>

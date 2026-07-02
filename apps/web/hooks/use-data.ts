@@ -177,7 +177,7 @@ export function useAttendance() {
     if (query.data?.data) setData(query.data.data)
   }, [query.data, setData])
 
-  return { data, isPending: query.isPending }
+  return { data, isPending: query.isPending, refetch: query.refetch }
 }
 
 // ─── Leave ────────────────────────────────────────────────────────────────

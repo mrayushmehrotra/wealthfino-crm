@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { useAuth } from "@/hooks/use-data"
 import { useEffect } from "react"
+import { useIsFetching } from "@tanstack/react-query"
 import {
   IconLayoutDashboard,
   IconUsers,
@@ -67,6 +68,34 @@ export function Sidebar({
   const router = useRouter()
 
   const { data: user, isPending } = useAuth()
+  const isFetchingEmployees = useIsFetching({ queryKey: ["employees"] }) > 0
+  const isFetchingAttendance = useIsFetching({ queryKey: ["attendance"] }) > 0
+  const isFetchingLeaves = useIsFetching({ queryKey: ["leaves"] }) > 0
+  const isFetchingTasks = useIsFetching({ queryKey: ["tasks"] }) > 0
+  const isFetchingWorkLog = useIsFetching({ queryKey: ["worklog"] }) > 0
+  const isFetchingReports = useIsFetching({ queryKey: ["reports"] }) > 0
+  const isFetchingAnnouncements = useIsFetching({ queryKey: ["announcements"] }) > 0
+  const isFetchingPayroll = useIsFetching({ queryKey: ["payroll"] }) > 0
+
+  const FETCHING_MAP: Record<string, boolean> = {
+    "Dashboard": false,
+    "Access Requests": false,
+    "Employees": isFetchingEmployees,
+    "Attendance": isFetchingAttendance,
+    "Leave Management": isFetchingLeaves,
+    "Task Management": isFetchingTasks,
+    "Daily Reports": isFetchingReports,
+    "Work Log (Hourly)": isFetchingWorkLog,
+    "Performance": false,
+    "Announcements": isFetchingAnnouncements,
+    "Salary & Payroll": isFetchingPayroll,
+    "Calendar": false,
+    "Documents": false,
+    "Reports & Analytics": false,
+    "Settings": false,
+    "Help & Support": false,
+  }
+
   const fullName = user?.employee ? `${user.employee.firstName} ${user.employee.lastName}` : (isPending ? "Loading..." : "Pending Setup")
   const initials = user?.employee ? `${user.employee.firstName[0]}${user.employee.lastName[0]}`.toUpperCase() : "??"
 
@@ -145,6 +174,7 @@ export function Sidebar({
         {NAV_ITEMS.filter((item) => role === "ADMIN" || !item.adminOnly).map(
           ({ label, href, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + "/")
+            const isLoading = FETCHING_MAP[label]
             return (
               <motion.div key={href} variants={fadeInLeft}>
                 <Link
@@ -178,6 +208,13 @@ export function Sidebar({
                     )}
                   />
                   <span className="z-10 flex-1 truncate">{label}</span>
+                  {isLoading && (
+                    <motion.span
+                      className="z-10 h-2 w-2 rounded-full bg-[#22C55E]"
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.2, repeat: Infinity }}
+                    />
+                  )}
                   {active && (
                     <motion.div
                       initial={{ opacity: 0, x: -4 }}
