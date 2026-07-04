@@ -47,6 +47,13 @@ export async function DELETE(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
+  const all = searchParams.get("all");
+
+  if (all === "true") {
+    await prisma.lead.deleteMany();
+    return NextResponse.json({ success: true, message: "All leads deleted" });
+  }
+
   if (!id) {
     return NextResponse.json({ success: false, error: "id is required" }, { status: 400 });
   }

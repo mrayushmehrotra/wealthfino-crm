@@ -40,6 +40,7 @@ export default function LeadsPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadMsg, setUploadMsg] = useState("")
   const [deleting, setDeleting] = useState(false)
+  const [deletingAll, setDeletingAll] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const defaultAssignee = employees.find(
     (emp) =>
@@ -159,6 +160,18 @@ export default function LeadsPage() {
     }
   }
 
+  const handleDeleteAll = async () => {
+    if (!confirm("Delete ALL leads? This cannot be undone.")) return
+    setDeletingAll(true)
+    try {
+      await fetch(`/api/leads?all=true`, { method: "DELETE" })
+      setSelectedIds(new Set())
+      fetchLeads()
+    } finally {
+      setDeletingAll(false)
+    }
+  }
+
   const getAssigneeName = (lead: Lead) => {
     if (!lead.assignedEmployee) return "Unassigned"
     return `${lead.assignedEmployee.firstName} ${lead.assignedEmployee.lastName}`
@@ -192,6 +205,20 @@ export default function LeadsPage() {
               onChange={handleUpload}
               className="hidden"
             />
+            <motion.button
+              onClick={handleDeleteAll}
+              disabled={deletingAll || leads.length === 0}
+              className="flex items-center gap-2 rounded-lg border border-[#EF4444] px-4 py-2.5 text-sm font-semibold text-[#EF4444] transition-colors hover:bg-[#FEE2E2] disabled:opacity-50"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              {deletingAll ? (
+                <IconLoader2 size={16} className="animate-spin" />
+              ) : (
+                <IconTrash size={16} />
+              )}
+              {deletingAll ? "Deleting..." : "Delete All"}
+            </motion.button>
             <motion.button
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
