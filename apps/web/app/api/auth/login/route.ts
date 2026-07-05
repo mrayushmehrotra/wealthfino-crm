@@ -41,7 +41,11 @@ export async function POST(request: Request) {
   }
 
   const bcrypt = await import("bcryptjs");
-  const valid = await bcrypt.compare(password, user.passwordHash);
+  const compare = bcrypt.compare ?? bcrypt.default?.compare;
+  if (!compare) {
+    throw new Error("bcryptjs compare export is unavailable");
+  }
+  const valid = await compare(password, user.passwordHash);
   if (!valid) {
     return NextResponse.json(
       { success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password" } },

@@ -115,7 +115,11 @@ export async function POST(request: Request) {
   }
 
   const bcrypt = await import("bcryptjs");
-  const passwordHash = await bcrypt.hash(password, 12);
+  const hash = bcrypt.hash ?? bcrypt.default?.hash;
+  if (!hash) {
+    throw new Error("bcryptjs hash export is unavailable");
+  }
+  const passwordHash = await hash(password, 12);
 
   const employee = await prisma.employee.create({
     data: {

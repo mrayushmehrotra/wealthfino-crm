@@ -45,6 +45,10 @@ async function loadOrCreateVapidKeys(): Promise<StoredVapidKeys> {
 
 export async function getVapidPublicKey() {
   const { publicKey } = await loadOrCreateVapidKeys()
+  // VAPID_PUBLIC_KEY env var may be a raw base64url key (not JWK JSON)
+  if (!publicKey.startsWith("{")) {
+    return publicKey
+  }
   const jwk = JSON.parse(publicKey)
   const x = Buffer.from(jwk.x, "base64url")
   const y = Buffer.from(jwk.y, "base64url")

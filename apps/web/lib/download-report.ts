@@ -4,18 +4,30 @@ export async function downloadHtmlAsPdf(url: string, filename: string) {
   const res = await fetch(url)
   const html = await res.text()
 
-  const container = document.createElement("div")
-  container.style.position = "fixed"
-  container.style.left = "-9999px"
-  container.style.top = "0"
-  container.style.width = "820px"
-  container.style.background = "#fff"
-  container.innerHTML = html
-  document.body.appendChild(container)
+  const iframe = document.createElement("iframe")
+  iframe.style.position = "fixed"
+  iframe.style.left = "-9999px"
+  iframe.style.top = "0"
+  iframe.style.width = "820px"
+  iframe.style.height = "1px"
+  iframe.style.border = "none"
+  document.body.appendChild(iframe)
 
-  await document.fonts.ready
+  const doc = iframe.contentDocument!
+  doc.open()
+  doc.write(html)
+  doc.close()
 
-  const imgs = container.querySelectorAll("img")
+  await new Promise<void>((resolve) => {
+    if (doc.readyState === "complete") resolve()
+    else doc.addEventListener("readystatechange", () => {
+      if (doc.readyState === "complete") resolve()
+    })
+  })
+
+  await doc.fonts.ready
+
+  const imgs = doc.querySelectorAll("img")
   await Promise.all(
     Array.from(imgs).map(
       (img) =>
@@ -28,14 +40,14 @@ export async function downloadHtmlAsPdf(url: string, filename: string) {
 
   const { default: html2canvas } = await import("html2canvas")
 
-  const canvas = await html2canvas(container, {
+  const canvas = await html2canvas(doc.body, {
     scale: 2,
     useCORS: true,
     logging: false,
     width: 820,
   })
 
-  document.body.removeChild(container)
+  document.body.removeChild(iframe)
 
   const imgData = canvas.toDataURL("image/png")
   const imgWidth = 210

@@ -105,7 +105,6 @@ export function Topbar() {
   const hasCheckedIn = !!todayAttendance?.checkIn
   const showCheckInModal: boolean | undefined = !!(
     user?.employee &&
-    user?.role !== "ADMIN" &&
     !hasCheckedIn
   )
 
@@ -290,7 +289,7 @@ export function Topbar() {
               </>
             )}
 
-            {!hasCheckedOut && user?.employee && !isAdmin && (
+            {!hasCheckedOut && user?.employee && (
               <motion.button
                 onClick={handleCheckOut}
                 disabled={isCheckingOut}

@@ -1,0 +1,7 @@
+#!/bin/sh
+# Pre-push hook — refresh the latest project context snapshot before pushing
+
+echo "📦 Refreshing project context snapshot..."
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+python3 "$ROOT_DIR/scripts/build-context.py"
+exit $?

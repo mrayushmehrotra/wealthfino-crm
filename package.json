@@ -7,7 +7,10 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "turbo format",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "test": "bun test apps/web/app/api",
+    "build:context": ".venv/bin/python3 scripts/build-context.py",
+    "git:setup": "git config core.hooksPath .githooks && echo '✓ Git hooks configured'"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
