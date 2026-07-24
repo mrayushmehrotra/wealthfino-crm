@@ -52,7 +52,7 @@ export async function GET() {
   return NextResponse.json({ success: true, data });
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   const user = await getUser();
   if (!user) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: "Employee not found" }, { status: 404 });
   }
 
-  const body = await request.json();
+  const body = await req.json();
   const { payrollId } = body;
 
   if (!payrollId) {
