@@ -24,6 +24,9 @@ import {
   IconBell,
   IconBellOff,
   IconDeviceMobile,
+  IconReceipt,
+  IconPercentage,
+  IconCurrencyRupee,
 } from "@tabler/icons-react"
 export default function SettingsPage() {
   const [selectedId, setSelectedId] = useAtom(employeeDetailIdAtom)
@@ -50,6 +53,66 @@ export default function SettingsPage() {
     designation: "",
     image: "",
   })
+
+  // Salary Template state (admin only)
+  const [salaryTemplate, setSalaryTemplate] = useState({
+    hraPercent: "45",       // % of allowances -> HRA
+    specialPercent: "35",   // % of allowances -> Special Allowance
+    conveyancePercent: "12",// % of allowances -> Conveyance
+    // remaining -> Medical (auto-calculated)
+    allowancePercent: "10", // allowances = basic * this %
+    deductionPercent: "5",  // deductions = basic * this %
+    pfPercent: "50",        // % of deductions -> PF
+    ptPercent: "30",        // % of deductions -> Professional Tax
+    // remaining -> TDS
+    defaultBonus: "0",      // default bonus in ₹
+  })
+  const [templateSaving, setTemplateSaving] = useState(false)
+  const [templateMsg, setTemplateMsg] = useState("")
+  const [templateError, setTemplateError] = useState("")
+
+  const setTemplateField = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSalaryTemplate((prev) => ({ ...prev, [field]: e.target.value }))
+    setTemplateMsg("")
+    setTemplateError("")
+  }
+
+  const handleSaveTemplate = async () => {
+    setTemplateSaving(true)
+    setTemplateMsg("")
+    setTemplateError("")
+    try {
+      // Validate percents add up correctly
+      const hra = Number(salaryTemplate.hraPercent)
+      const special = Number(salaryTemplate.specialPercent)
+      const conveyance = Number(salaryTemplate.conveyancePercent)
+      if (hra + special + conveyance > 100) {
+        throw new Error("HRA + Special + Conveyance cannot exceed 100% of allowances")
+      }
+      const pf = Number(salaryTemplate.pfPercent)
+      const pt = Number(salaryTemplate.ptPercent)
+      if (pf + pt > 100) {
+        throw new Error("PF + Professional Tax cannot exceed 100% of deductions")
+      }
+      // Save to localStorage for now (can be moved to DB later)
+      localStorage.setItem("salary_template", JSON.stringify(salaryTemplate))
+      setTemplateMsg("Salary template saved successfully!")
+    } catch (err: unknown) {
+      setTemplateError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setTemplateSaving(false)
+    }
+  }
+
+  // Load saved template on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("salary_template")
+    if (saved) {
+      try {
+        setSalaryTemplate(JSON.parse(saved))
+      } catch {}
+    }
+  }, [])
 
   const queryClient = useQueryClient()
 
@@ -803,6 +866,290 @@ export default function SettingsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Salary Template — admin only */}
+      {isAdmin && (
+        <motion.div
+          variants={slideUp}
+          className="rounded-xl border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+        >
+          <div className="border-b border-[#E5E7EB] p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EDE9FE]">
+                <IconReceipt size={20} className="text-[#7C3AED]" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-[#1A202C]">
+                  Salary Slip Template
+                </h2>
+                <p className="mt-0.5 text-xs text-[#6B7280]">
+                  Configure the default breakdown ratios used when generating payslips
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6 p-5">
+            {templateMsg && (
+              <div className="rounded-lg bg-[#DCFCE7] p-3 text-sm font-medium text-[#22C55E]">
+                {templateMsg}
+              </div>
+            )}
+            {templateError && (
+              <div className="rounded-lg bg-[#FEE2E2] p-3 text-sm font-medium text-[#EF4444]">
+                {templateError}
+              </div>
+            )}
+
+            {/* Earnings Breakdown */}
+            <div>
+              <h3 className="mb-3 flex items-center gap-2 text-xs font-bold tracking-wider text-[#6B7280] uppercase">
+                <IconCurrencyRupee size={13} />
+                Earnings Breakdown
+              </h3>
+              <div className="rounded-lg border border-[#E5E7EB] overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F9FAFB]">
+                      <th className="px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-[#6B7280] uppercase">Component</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-[#6B7280] uppercase">Formula / Value</th>
+                      <th className="px-4 py-2.5 text-right text-[11px] font-semibold tracking-wider text-[#6B7280] uppercase">Override (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F3F4F6]">
+                    <tr>
+                      <td className="px-4 py-3 font-medium text-[#1A202C]">Basic Salary</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Employee's configured salary</td>
+                      <td className="px-4 py-3 text-right text-[#9CA3AF] text-xs italic">fixed</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 font-medium text-[#1A202C]">Total Allowances</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Basic × <span className="font-mono font-semibold text-[#7C3AED]">{salaryTemplate.allowancePercent}%</span></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <input
+                            type="number"
+                            min="0" max="100"
+                            value={salaryTemplate.allowancePercent}
+                            onChange={setTemplateField("allowancePercent")}
+                            className="w-20 rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-right text-sm text-[#1A202C] focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 focus:outline-none"
+                          />
+                          <IconPercentage size={14} className="text-[#9CA3AF]" />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FAFAFA]">
+                      <td className="px-4 py-3 pl-8 text-[#6B7280]">↳ HRA</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Allowances × <span className="font-mono font-semibold text-[#7C3AED]">{salaryTemplate.hraPercent}%</span></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <input
+                            type="number"
+                            min="0" max="100"
+                            value={salaryTemplate.hraPercent}
+                            onChange={setTemplateField("hraPercent")}
+                            className="w-20 rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-right text-sm text-[#1A202C] focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 focus:outline-none"
+                          />
+                          <IconPercentage size={14} className="text-[#9CA3AF]" />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FAFAFA]">
+                      <td className="px-4 py-3 pl-8 text-[#6B7280]">↳ Special Allowance</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Allowances × <span className="font-mono font-semibold text-[#7C3AED]">{salaryTemplate.specialPercent}%</span></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <input
+                            type="number"
+                            min="0" max="100"
+                            value={salaryTemplate.specialPercent}
+                            onChange={setTemplateField("specialPercent")}
+                            className="w-20 rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-right text-sm text-[#1A202C] focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 focus:outline-none"
+                          />
+                          <IconPercentage size={14} className="text-[#9CA3AF]" />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FAFAFA]">
+                      <td className="px-4 py-3 pl-8 text-[#6B7280]">↳ Conveyance</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Allowances × <span className="font-mono font-semibold text-[#7C3AED]">{salaryTemplate.conveyancePercent}%</span></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <input
+                            type="number"
+                            min="0" max="100"
+                            value={salaryTemplate.conveyancePercent}
+                            onChange={setTemplateField("conveyancePercent")}
+                            className="w-20 rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-right text-sm text-[#1A202C] focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 focus:outline-none"
+                          />
+                          <IconPercentage size={14} className="text-[#9CA3AF]" />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FAFAFA]">
+                      <td className="px-4 py-3 pl-8 text-[#6B7280]">↳ Medical Allowance</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Allowances × remainder <span className="font-mono font-semibold text-[#7C3AED]">{Math.max(0, 100 - Number(salaryTemplate.hraPercent) - Number(salaryTemplate.specialPercent) - Number(salaryTemplate.conveyancePercent))}%</span></td>
+                      <td className="px-4 py-3 text-right text-[#9CA3AF] text-xs italic">auto</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 font-medium text-[#1A202C]">Performance Bonus</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Default ₹ value (editable per-employee at generation)</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <span className="text-[#9CA3AF]">₹</span>
+                          <input
+                            type="number"
+                            min="0"
+                            value={salaryTemplate.defaultBonus}
+                            onChange={setTemplateField("defaultBonus")}
+                            className="w-24 rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-right text-sm text-[#1A202C] focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 focus:outline-none"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Deductions Breakdown */}
+            <div>
+              <h3 className="mb-3 flex items-center gap-2 text-xs font-bold tracking-wider text-[#6B7280] uppercase">
+                <IconPercentage size={13} />
+                Deductions Breakdown
+              </h3>
+              <div className="rounded-lg border border-[#E5E7EB] overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#F9FAFB]">
+                      <th className="px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-[#6B7280] uppercase">Component</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-semibold tracking-wider text-[#6B7280] uppercase">Formula / Value</th>
+                      <th className="px-4 py-2.5 text-right text-[11px] font-semibold tracking-wider text-[#6B7280] uppercase">Override (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F3F4F6]">
+                    <tr>
+                      <td className="px-4 py-3 font-medium text-[#1A202C]">Total Deductions</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Basic × <span className="font-mono font-semibold text-[#EF4444]">{salaryTemplate.deductionPercent}%</span></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <input
+                            type="number"
+                            min="0" max="100"
+                            value={salaryTemplate.deductionPercent}
+                            onChange={setTemplateField("deductionPercent")}
+                            className="w-20 rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-right text-sm text-[#1A202C] focus:border-[#EF4444] focus:ring-2 focus:ring-[#EF4444]/20 focus:outline-none"
+                          />
+                          <IconPercentage size={14} className="text-[#9CA3AF]" />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FAFAFA]">
+                      <td className="px-4 py-3 pl-8 text-[#6B7280]">↳ Provident Fund (PF)</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Deductions × <span className="font-mono font-semibold text-[#EF4444]">{salaryTemplate.pfPercent}%</span></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <input
+                            type="number"
+                            min="0" max="100"
+                            value={salaryTemplate.pfPercent}
+                            onChange={setTemplateField("pfPercent")}
+                            className="w-20 rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-right text-sm text-[#1A202C] focus:border-[#EF4444] focus:ring-2 focus:ring-[#EF4444]/20 focus:outline-none"
+                          />
+                          <IconPercentage size={14} className="text-[#9CA3AF]" />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FAFAFA]">
+                      <td className="px-4 py-3 pl-8 text-[#6B7280]">↳ Professional Tax</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Deductions × <span className="font-mono font-semibold text-[#EF4444]">{salaryTemplate.ptPercent}%</span></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <input
+                            type="number"
+                            min="0" max="100"
+                            value={salaryTemplate.ptPercent}
+                            onChange={setTemplateField("ptPercent")}
+                            className="w-20 rounded-lg border border-[#E5E7EB] px-2 py-1.5 text-right text-sm text-[#1A202C] focus:border-[#EF4444] focus:ring-2 focus:ring-[#EF4444]/20 focus:outline-none"
+                          />
+                          <IconPercentage size={14} className="text-[#9CA3AF]" />
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="bg-[#FAFAFA]">
+                      <td className="px-4 py-3 pl-8 text-[#6B7280]">↳ TDS</td>
+                      <td className="px-4 py-3 text-[#6B7280]">Deductions × remainder <span className="font-mono font-semibold text-[#EF4444]">{Math.max(0, 100 - Number(salaryTemplate.pfPercent) - Number(salaryTemplate.ptPercent))}%</span></td>
+                      <td className="px-4 py-3 text-right text-[#9CA3AF] text-xs italic">auto</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Live Preview */}
+            <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-4">
+              <h3 className="mb-3 text-xs font-bold tracking-wider text-[#6B7280] uppercase">Live Preview — ₹50,000 Basic</h3>
+              {(() => {
+                const basic = 50000
+                const allowances = Math.round(basic * Number(salaryTemplate.allowancePercent) / 100)
+                const hra = Math.round(allowances * Number(salaryTemplate.hraPercent) / 100)
+                const special = Math.round(allowances * Number(salaryTemplate.specialPercent) / 100)
+                const conveyance = Math.round(allowances * Number(salaryTemplate.conveyancePercent) / 100)
+                const medical = allowances - hra - special - conveyance
+                const deductions = Math.round(basic * Number(salaryTemplate.deductionPercent) / 100)
+                const pf = Math.round(deductions * Number(salaryTemplate.pfPercent) / 100)
+                const pt = Math.round(deductions * Number(salaryTemplate.ptPercent) / 100)
+                const tds = deductions - pf - pt
+                const bonus = Number(salaryTemplate.defaultBonus)
+                const gross = basic + allowances + bonus
+                const netPay = gross - deductions
+                const fmt = (n: number) => `₹${n.toLocaleString("en-IN")}`
+                return (
+                  <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+                    {[
+                      { label: "Basic", value: fmt(basic), color: "text-[#1A202C]" },
+                      { label: "HRA", value: fmt(hra), color: "text-[#3B82F6]" },
+                      { label: "Special", value: fmt(special), color: "text-[#3B82F6]" },
+                      { label: "Conveyance", value: fmt(conveyance), color: "text-[#3B82F6]" },
+                      { label: "Medical", value: fmt(medical), color: "text-[#3B82F6]" },
+                      { label: "Bonus", value: fmt(bonus), color: "text-[#F59E0B]" },
+                      { label: "PF", value: `-${fmt(pf)}`, color: "text-[#EF4444]" },
+                      { label: "Prof. Tax", value: `-${fmt(pt)}`, color: "text-[#EF4444]" },
+                      { label: "TDS", value: `-${fmt(tds)}`, color: "text-[#EF4444]" },
+                    ].map(({ label, value, color }) => (
+                      <div key={label} className="rounded-lg border border-[#E5E7EB] bg-white p-2.5 text-center">
+                        <p className={`text-sm font-bold ${color}`}>{value}</p>
+                        <p className="mt-0.5 text-[10px] font-semibold tracking-wider text-[#9CA3AF] uppercase">{label}</p>
+                      </div>
+                    ))}
+                    <div className="col-span-2 rounded-lg border border-[#22C55E] bg-[#DCFCE7] p-2.5 text-center sm:col-span-4">
+                      <p className="text-sm font-bold text-[#22C55E]">Net Pay: {fmt(netPay)}</p>
+                      <p className="mt-0.5 text-[10px] font-semibold tracking-wider text-[#16A34A] uppercase">Gross {fmt(gross)} − Deductions {fmt(deductions)}</p>
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 border-t border-[#E5E7EB] px-5 py-4">
+            <motion.button
+              onClick={handleSaveTemplate}
+              disabled={templateSaving}
+              className="flex items-center gap-2 rounded-lg bg-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#6D28D9] disabled:bg-[#9CA3AF]"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              {templateSaving ? (
+                <IconLoader2 size={16} className="animate-spin" />
+              ) : (
+                <IconDeviceFloppy size={16} />
+              )}
+              {templateSaving ? "Saving..." : "Save Template"}
+            </motion.button>
+            <p className="text-xs text-[#9CA3AF]">These ratios apply to all payslips generated via Salary &amp; Payroll</p>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   )
 }
