@@ -1,291 +1,296 @@
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+    provider = "mysql"
+    url      = env("DATABASE_URL")
 }
 
 model AllowedEmail {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
+    id        Int      @id @default(autoincrement())
+    email     String   @unique
+    createdAt DateTime @default(now()) @map("created_at")
 
-  @@map("allowed_emails")
+    @@map("allowed_emails")
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  role         Role      @default(EMPLOYEE)
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  isApproved   Boolean   @default(false) @map("is_approved")
-  frozen       Boolean   @default(false)
-  employee     Employee?
-  announcementReads AnnouncementRead[]
-  pushSubscriptions PushSubscription[]
+    id                Int                @id @default(autoincrement())
+    email             String             @unique
+    passwordHash      String             @map("password_hash")
+    role              Role               @default(EMPLOYEE)
+    createdAt         DateTime           @default(now()) @map("created_at")
+    updatedAt         DateTime           @updatedAt @map("updated_at")
+    isApproved        Boolean            @default(false) @map("is_approved")
+    frozen            Boolean            @default(false)
+    employee          Employee?
+    announcementReads AnnouncementRead[]
+    pushSubscriptions PushSubscription[]
 
-  @@map("users")
+    @@map("users")
 }
 
 model Employee {
-  id            Int            @id @default(autoincrement())
-  userId        Int            @unique @map("user_id")
-  firstName     String         @map("first_name")
-  lastName      String         @map("last_name")
-  phone         String?
-  address       String?
-  aadharCard    String?        @map("aadhar_card")
-  panNumber     String?        @map("pan_number")
-  salary        Decimal?       @db.Decimal(12, 2)
-  bonus         Decimal?       @default(0.00) @db.Decimal(12, 2)
-  department    String?
-  designation   String?
-  joinedAt      DateTime       @default(now()) @map("joined_at")
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
-  attendance    Attendance[]
-  dailyReports  DailyReport[]
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leaveRequests LeaveRequest[]
-  tasks         Task[]
-  workLogs      WorkLog[]
-  payroll                 Payroll[]
-  payrollDownloadRequests PayrollDownloadRequest[]
-  lastIp                  String?        @map("last_ip")
-  image                   String?        @db.Text
-  leads                   Lead[]
+    id                      Int                      @id @default(autoincrement())
+    userId                  Int                      @unique @map("user_id")
+    firstName               String                   @map("first_name")
+    lastName                String                   @map("last_name")
+    phone                   String?
+    address                 String?
+    aadharCard              String?                  @map("aadhar_card")
+    panNumber               String?                  @map("pan_number")
+    salary                  Decimal?                 @db.Decimal(12, 2)
+    basicSalary             Decimal?                 @map("basic_salary") @db.Decimal(12, 2)
+    hra                     Decimal?                 @default(0.00) @db.Decimal(12, 2)
+    specialAllowance        Decimal?                 @default(0.00) @map("special_allowance") @db.Decimal(12, 2)
+    conveyanceAllowance     Decimal?                 @default(0.00) @map("conveyance_allowance") @db.Decimal(12, 2)
+    medicalAllowance        Decimal?                 @default(0.00) @map("medical_allowance") @db.Decimal(12, 2)
+    bonus                   Decimal?                 @default(0.00) @db.Decimal(12, 2)
+    department              String?
+    designation             String?
+    joinedAt                DateTime                 @default(now()) @map("joined_at")
+    createdAt               DateTime                 @default(now()) @map("created_at")
+    updatedAt               DateTime                 @updatedAt @map("updated_at")
+    attendance              Attendance[]
+    dailyReports            DailyReport[]
+    user                    User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    leaveRequests           LeaveRequest[]
+    tasks                   Task[]
+    workLogs                WorkLog[]
+    payroll                 Payroll[]
+    payrollDownloadRequests PayrollDownloadRequest[]
+    lastIp                  String?                  @map("last_ip")
+    image                   String?                  @db.Text
+    leads                   Lead[]
 
-  @@map("employees")
+    @@map("employees")
 }
 
 model Attendance {
-  id         Int              @id @default(autoincrement())
-  employeeId Int              @map("employee_id")
-  date       DateTime         @db.Date
-  checkIn    DateTime?        @map("check_in")
-  checkOut   DateTime?        @map("check_out")
-  status     AttendanceStatus @default(PRESENT)
-  createdAt  DateTime         @default(now()) @map("created_at")
-  updatedAt  DateTime         @updatedAt @map("updated_at")
-  employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    id         Int              @id @default(autoincrement())
+    employeeId Int              @map("employee_id")
+    date       DateTime         @db.Date
+    checkIn    DateTime?        @map("check_in")
+    checkOut   DateTime?        @map("check_out")
+    status     AttendanceStatus @default(PRESENT)
+    createdAt  DateTime         @default(now()) @map("created_at")
+    updatedAt  DateTime         @updatedAt @map("updated_at")
+    employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@unique([employeeId, date])
-  @@map("attendance")
+    @@unique([employeeId, date])
+    @@map("attendance")
 }
 
 model LeaveRequest {
-  id         Int         @id @default(autoincrement())
-  employeeId Int         @map("employee_id")
-  type       LeaveType
-  fromDate   DateTime    @map("from_date") @db.Date
-  toDate     DateTime    @map("to_date") @db.Date
-  days       Int
-  reason     String?     @db.Text
-  status     LeaveStatus @default(PENDING)
-  reviewedBy Int?        @map("reviewed_by")
-  reviewedAt DateTime?   @map("reviewed_at")
-  createdAt  DateTime    @default(now()) @map("created_at")
-  updatedAt  DateTime    @updatedAt @map("updated_at")
-  employee   Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    id         Int         @id @default(autoincrement())
+    employeeId Int         @map("employee_id")
+    type       LeaveType
+    fromDate   DateTime    @map("from_date") @db.Date
+    toDate     DateTime    @map("to_date") @db.Date
+    days       Int
+    reason     String?     @db.Text
+    status     LeaveStatus @default(PENDING)
+    reviewedBy Int?        @map("reviewed_by")
+    reviewedAt DateTime?   @map("reviewed_at")
+    createdAt  DateTime    @default(now()) @map("created_at")
+    updatedAt  DateTime    @updatedAt @map("updated_at")
+    employee   Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@index([employeeId])
-  @@map("leave_requests")
+    @@index([employeeId])
+    @@map("leave_requests")
 }
 
 model Task {
-  id          Int          @id @default(autoincrement())
-  title       String
-  description String?      @db.Text
-  employeeId  Int          @map("employee_id")
-  dueDate     DateTime?    @map("due_date") @db.Date
-  priority    TaskPriority @default(MEDIUM)
-  status      TaskStatus   @default(TODO)
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
-  employee    Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    id          Int          @id @default(autoincrement())
+    title       String
+    description String?      @db.Text
+    employeeId  Int          @map("employee_id")
+    dueDate     DateTime?    @map("due_date") @db.Date
+    priority    TaskPriority @default(MEDIUM)
+    status      TaskStatus   @default(TODO)
+    createdAt   DateTime     @default(now()) @map("created_at")
+    updatedAt   DateTime     @updatedAt @map("updated_at")
+    employee    Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@index([employeeId])
-  @@map("tasks")
+    @@index([employeeId])
+    @@map("tasks")
 }
 
 model DailyReport {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int      @map("employee_id")
-  date        DateTime @db.Date
-  summary     String   @db.Text
-  hoursLogged Float    @map("hours_logged")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    id          Int      @id @default(autoincrement())
+    employeeId  Int      @map("employee_id")
+    date        DateTime @db.Date
+    summary     String   @db.Text
+    hoursLogged Float    @map("hours_logged")
+    createdAt   DateTime @default(now()) @map("created_at")
+    updatedAt   DateTime @updatedAt @map("updated_at")
+    employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@unique([employeeId, date])
-  @@map("daily_reports")
+    @@unique([employeeId, date])
+    @@map("daily_reports")
 }
 
 model WorkLog {
-  id         Int      @id @default(autoincrement())
-  employeeId Int      @map("employee_id")
-  date       DateTime @db.Date
-  task       String
-  startTime  DateTime @map("start_time")
-  endTime    DateTime @map("end_time")
-  hours      Float
-  status     String   @default("Not Yet Started")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    id         Int      @id @default(autoincrement())
+    employeeId Int      @map("employee_id")
+    date       DateTime @db.Date
+    task       String
+    startTime  DateTime @map("start_time")
+    endTime    DateTime @map("end_time")
+    hours      Float
+    status     String   @default("Not Yet Started")
+    createdAt  DateTime @default(now()) @map("created_at")
+    updatedAt  DateTime @updatedAt @map("updated_at")
+    employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@index([employeeId])
-  @@map("work_logs")
+    @@index([employeeId])
+    @@map("work_logs")
 }
 
 model Announcement {
-  id        Int      @id @default(autoincrement())
-  title     String
-  body      String   @db.Text
-  tag       String?
-  authorId  Int      @map("author_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+    id        Int      @id @default(autoincrement())
+    title     String
+    body      String   @db.Text
+    tag       String?
+    authorId  Int      @map("author_id")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
-  reads AnnouncementRead[]
+    reads AnnouncementRead[]
 
-  @@map("announcements")
+    @@map("announcements")
 }
 
 model AnnouncementRead {
-  id             Int          @id @default(autoincrement())
-  announcementId Int          @map("announcement_id")
-  userId         Int          @map("user_id")
-  readAt         DateTime     @default(now()) @map("read_at")
-  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+    id             Int          @id @default(autoincrement())
+    announcementId Int          @map("announcement_id")
+    userId         Int          @map("user_id")
+    readAt         DateTime     @default(now()) @map("read_at")
+    announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+    user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([announcementId, userId])
-  @@map("announcement_reads")
+    @@unique([announcementId, userId])
+    @@map("announcement_reads")
 }
 
 model Payroll {
-  id         Int           @id @default(autoincrement())
-  employeeId Int           @map("employee_id")
-  month      Int
-  year       Int
-  basic      Decimal       @db.Decimal(12, 2)
-  allowances Decimal       @default(0.00) @db.Decimal(12, 2)
-  deductions Decimal       @default(0.00) @db.Decimal(12, 2)
-  bonus      Decimal       @default(0.00) @db.Decimal(12, 2)
-  netPay     Decimal       @map("net_pay") @db.Decimal(12, 2)
-  status     PayrollStatus @default(DRAFT)
-  createdAt  DateTime      @default(now()) @map("created_at")
-  updatedAt  DateTime      @updatedAt @map("updated_at")
-  employee         Employee                   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  downloadRequests PayrollDownloadRequest[]
+    id               Int                      @id @default(autoincrement())
+    employeeId       Int                      @map("employee_id")
+    month            Int
+    year             Int
+    basic            Decimal                  @db.Decimal(12, 2)
+    allowances       Decimal                  @default(0.00) @db.Decimal(12, 2)
+    deductions       Decimal                  @default(0.00) @db.Decimal(12, 2)
+    bonus            Decimal                  @default(0.00) @db.Decimal(12, 2)
+    netPay           Decimal                  @map("net_pay") @db.Decimal(12, 2)
+    status           PayrollStatus            @default(DRAFT)
+    createdAt        DateTime                 @default(now()) @map("created_at")
+    updatedAt        DateTime                 @updatedAt @map("updated_at")
+    employee         Employee                 @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    downloadRequests PayrollDownloadRequest[]
 
-  @@unique([employeeId, month, year])
-  @@map("payroll")
+    @@unique([employeeId, month, year])
+    @@map("payroll")
 }
 
 enum Role {
-  ADMIN
-  MANAGER
-  EMPLOYEE
+    ADMIN
+    MANAGER
+    EMPLOYEE
 }
 
 enum AttendanceStatus {
-  PRESENT
-  ABSENT
-  ON_LEAVE
-  HALF_DAY
+    PRESENT
+    ABSENT
+    ON_LEAVE
+    HALF_DAY
 }
 
 enum LeaveType {
-  ANNUAL
-  SICK
-  CASUAL
-  MATERNITY
-  PATERNITY
-  UNPAID
+    ANNUAL
+    SICK
+    CASUAL
+    MATERNITY
+    PATERNITY
+    UNPAID
 }
 
 enum LeaveStatus {
-  PENDING
-  APPROVED
-  REJECTED
+    PENDING
+    APPROVED
+    REJECTED
 }
 
 enum TaskPriority {
-  LOW
-  MEDIUM
-  HIGH
+    LOW
+    MEDIUM
+    HIGH
 }
 
 enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  DONE
-  CANCELLED
+    TODO
+    IN_PROGRESS
+    DONE
+    CANCELLED
 }
 
 enum PayrollStatus {
-  DRAFT
-  PROCESSED
-  PAID
+    DRAFT
+    PROCESSED
+    PAID
 }
 
 enum RequestStatus {
-  PENDING
-  APPROVED
-  REJECTED
+    PENDING
+    APPROVED
+    REJECTED
 }
 
 model PayrollDownloadRequest {
-  id          Int           @id @default(autoincrement())
-  payrollId   Int           @map("payroll_id")
-  employeeId  Int           @map("employee_id")
-  status      RequestStatus @default(PENDING)
-  requestedAt DateTime      @default(now()) @map("requested_at")
-  reviewedAt  DateTime?     @map("reviewed_at")
-  reviewedBy  Int?          @map("reviewed_by")
-  payroll     Payroll       @relation(fields: [payrollId], references: [id], onDelete: Cascade)
-  employee    Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+    id          Int           @id @default(autoincrement())
+    payrollId   Int           @map("payroll_id")
+    employeeId  Int           @map("employee_id")
+    status      RequestStatus @default(PENDING)
+    requestedAt DateTime      @default(now()) @map("requested_at")
+    reviewedAt  DateTime?     @map("reviewed_at")
+    reviewedBy  Int?          @map("reviewed_by")
+    payroll     Payroll       @relation(fields: [payrollId], references: [id], onDelete: Cascade)
+    employee    Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@index([payrollId])
-  @@index([employeeId])
-  @@index([status], map: "pdr_status_idx")
-  @@map("payroll_download_requests")
+    @@index([payrollId])
+    @@index([employeeId])
+    @@index([status], map: "pdr_status_idx")
+    @@map("payroll_download_requests")
 }
 
 model Lead {
-  id          Int       @id @default(autoincrement())
-  name        String
-  email       String?
-  phone       String?
-  source      String?
-  status      String    @default("New")
-  notes       String?   @db.Text
-  assignedTo  Int?      @map("assigned_to")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  assignedEmployee Employee? @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
+    id               Int       @id @default(autoincrement())
+    name             String
+    email            String?
+    phone            String?
+    source           String?
+    status           String    @default("New")
+    notes            String?   @db.Text
+    assignedTo       Int?      @map("assigned_to")
+    createdAt        DateTime  @default(now()) @map("created_at")
+    updatedAt        DateTime  @updatedAt @map("updated_at")
+    assignedEmployee Employee? @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
 
-  @@index([assignedTo])
-  @@map("leads")
+    @@index([assignedTo])
+    @@map("leads")
 }
 
 model PushSubscription {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  endpoint  String   @unique
-  p256dh    String   @map("p256dh")
-  auth      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    id        Int      @id @default(autoincrement())
+    userId    Int      @map("user_id")
+    endpoint  String   @unique
+    p256dh    String   @map("p256dh")
+    auth      String
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@map("push_subscriptions")
+    @@index([userId])
+    @@map("push_subscriptions")
 }

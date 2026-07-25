@@ -101,7 +101,7 @@ export async function PATCH(
   }
 
   const body = await request.json();
-  const { firstName, lastName, phone, address, aadharCard, panNumber, salary, bonus, department, designation, image } = body;
+  const { firstName, lastName, phone, address, aadharCard, panNumber, salary, basicSalary, hra, specialAllowance, conveyanceAllowance, medicalAllowance, bonus, department, designation, image } = body;
 
   const updated = await prisma.employee.update({
     where: { id: employeeId },
@@ -113,6 +113,11 @@ export async function PATCH(
       ...(aadharCard !== undefined && { aadharCard }),
       ...(panNumber !== undefined && { panNumber }),
       ...(salary !== undefined && { salary }),
+      ...(basicSalary !== undefined && { basicSalary }),
+      ...(hra !== undefined && { hra }),
+      ...(specialAllowance !== undefined && { specialAllowance }),
+      ...(conveyanceAllowance !== undefined && { conveyanceAllowance }),
+      ...(medicalAllowance !== undefined && { medicalAllowance }),
       ...(bonus !== undefined && { bonus }),
       ...(department !== undefined && { department }),
       ...(designation !== undefined && { designation }),

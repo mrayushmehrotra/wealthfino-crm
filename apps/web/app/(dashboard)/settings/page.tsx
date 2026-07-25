@@ -46,6 +46,11 @@ export default function SettingsPage() {
     aadharCard: "",
     panNumber: "",
     salary: "",
+    basicSalary: "",
+    hra: "",
+    specialAllowance: "",
+    conveyanceAllowance: "",
+    medicalAllowance: "",
     department: "",
     designation: "",
     image: "",
@@ -145,6 +150,16 @@ export default function SettingsPage() {
         payload.panNumber = form.panNumber || null
       if (form.salary !== (emp?.salary != null ? String(emp.salary) : ""))
         payload.salary = form.salary ? parseFloat(form.salary) : null
+      if (form.basicSalary !== (emp?.basicSalary != null ? String(emp.basicSalary) : ""))
+        payload.basicSalary = form.basicSalary ? parseFloat(form.basicSalary) : null
+      if (form.hra !== (emp?.hra != null ? String(emp.hra) : ""))
+        payload.hra = form.hra ? parseFloat(form.hra) : 0
+      if (form.specialAllowance !== (emp?.specialAllowance != null ? String(emp.specialAllowance) : ""))
+        payload.specialAllowance = form.specialAllowance ? parseFloat(form.specialAllowance) : 0
+      if (form.conveyanceAllowance !== (emp?.conveyanceAllowance != null ? String(emp.conveyanceAllowance) : ""))
+        payload.conveyanceAllowance = form.conveyanceAllowance ? parseFloat(form.conveyanceAllowance) : 0
+      if (form.medicalAllowance !== (emp?.medicalAllowance != null ? String(emp.medicalAllowance) : ""))
+        payload.medicalAllowance = form.medicalAllowance ? parseFloat(form.medicalAllowance) : 0
       if (form.department !== (emp?.department || ""))
         payload.department = form.department || null
       if (form.designation !== (emp?.designation || ""))
@@ -284,6 +299,11 @@ export default function SettingsPage() {
         aadharCard: emp.aadharCard || "",
         panNumber: emp.panNumber || "",
         salary: emp.salary != null ? String(emp.salary) : "",
+        basicSalary: emp.basicSalary != null ? String(emp.basicSalary) : "",
+        hra: emp.hra != null ? String(emp.hra) : "",
+        specialAllowance: emp.specialAllowance != null ? String(emp.specialAllowance) : "",
+        conveyanceAllowance: emp.conveyanceAllowance != null ? String(emp.conveyanceAllowance) : "",
+        medicalAllowance: emp.medicalAllowance != null ? String(emp.medicalAllowance) : "",
         department: emp.department || "",
         designation: emp.designation || "",
         image: emp.image || "",
@@ -604,22 +624,82 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Financial */}
+                {/* Salary Structure */}
                 <div className="border-t border-[#E5E7EB] pt-6">
                   <h3 className="mb-3 text-xs font-bold tracking-wider text-[#6B7280] uppercase">
-                    Financial
+                    Salary Structure
                   </h3>
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                     <div>
                       <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
-                        Salary (₹)
+                        Basic Salary (₹)
                       </label>
                       <input
                         type="number"
-                        value={form.salary}
-                        onChange={setField("salary")}
+                        value={form.basicSalary}
+                        onChange={setField("basicSalary")}
                         className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
                       />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        House Rent Allowance (HRA) (₹)
+                      </label>
+                      <input
+                        type="number"
+                        value={form.hra}
+                        onChange={setField("hra")}
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        Special Allowance (₹)
+                      </label>
+                      <input
+                        type="number"
+                        value={form.specialAllowance}
+                        onChange={setField("specialAllowance")}
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        Conveyance Allowance (₹)
+                      </label>
+                      <input
+                        type="number"
+                        value={form.conveyanceAllowance}
+                        onChange={setField("conveyanceAllowance")}
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                        Medical Allowance (₹)
+                      </label>
+                      <input
+                        type="number"
+                        value={form.medicalAllowance}
+                        onChange={setField("medicalAllowance")}
+                        className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <div className="w-full rounded-lg border border-[#22C55E] bg-[#F0FFF4] px-3 py-2">
+                        <p className="text-[10px] font-semibold tracking-wider text-[#6B7280] uppercase">
+                          Total Gross Salary (₹)
+                        </p>
+                        <p className="text-lg font-bold text-[#1A202C]">
+                          ₹{(
+                            (parseFloat(form.basicSalary || "0")) +
+                            (parseFloat(form.hra || "0")) +
+                            (parseFloat(form.specialAllowance || "0")) +
+                            (parseFloat(form.conveyanceAllowance || "0")) +
+                            (parseFloat(form.medicalAllowance || "0"))
+                          ).toLocaleString("en-IN")}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

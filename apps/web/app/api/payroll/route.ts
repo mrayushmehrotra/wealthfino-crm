@@ -78,10 +78,12 @@ export async function POST(request: Request) {
 
   const results = [];
   for (const emp of employees) {
-    const basic = Number(emp.salary ?? 0);
+    const basic = Number(emp.basicSalary ?? emp.salary ?? 0);
     const sel = selected?.find((s) => s.employeeId === emp.id);
     const bonus = sel?.bonus ?? Number(emp.bonus ?? 0);
-    const allowances = Math.round(basic * 0.1 * 100) / 100;
+    const allowances = Math.round(
+      (Number(emp.hra ?? 0) + Number(emp.specialAllowance ?? 0) + Number(emp.conveyanceAllowance ?? 0) + Number(emp.medicalAllowance ?? 0)) * 100
+    ) / 100;
     const deductions = Math.round(basic * 0.05 * 100) / 100;
     const netPay = Math.round((basic + allowances + bonus - deductions) * 100) / 100;
 

@@ -30,6 +30,11 @@ export interface Employee {
   aadharCard: string | null
   panNumber: string | null
   salary: number | null
+  basicSalary: number | null
+  hra: number | null
+  specialAllowance: number | null
+  conveyanceAllowance: number | null
+  medicalAllowance: number | null
   bonus: number
   department: string | null
   designation: string | null

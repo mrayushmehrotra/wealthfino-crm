@@ -8,9 +8,7 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck",
-    "test": "bun test apps/web/app/api",
-    "build:context": ".venv/bin/python3 scripts/build-chroma.py",
-    "git:setup": "git config core.hooksPath .githooks && echo '✓ Git hooks configured'"
+    "test": "bun test apps/web/app/api"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
