@@ -1,8 +1,9 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 import { useEmployees } from "@/hooks/use-data"
 import { EmployeeLoadingState } from "@/components/employee-loading-state"
 import {
@@ -17,6 +18,7 @@ import {
   IconCash,
   IconReportAnalytics,
   IconEye,
+  IconLoader2,
 } from "@tabler/icons-react"
 import {
   fadeInUp,
@@ -52,10 +54,53 @@ interface Employee {
 
 export default function EmployeesPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const [showModal, setShowModal] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState("")
+  const [createSuccess, setCreateSuccess] = useState("")
+  const [newUser, setNewUser] = useState({
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    department: "",
+    designation: "",
+    phone: "",
+  })
 
   const { data: EMPLOYEES, isPending } = useEmployees()
+
+  const handleCreateUser = async () => {
+    if (!newUser.email || !newUser.password || !newUser.firstName || !newUser.lastName) {
+      setCreateError("Email, password, first name, and last name are required.")
+      return
+    }
+    setCreating(true)
+    setCreateError("")
+    setCreateSuccess("")
+    try {
+      const res = await fetch("/api/employees", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newUser),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error?.message || data.error || "Failed to create employee")
+      }
+      setCreateSuccess(`Employee ${newUser.firstName} ${newUser.lastName} created successfully!`)
+      setNewUser({ email: "", password: "", firstName: "", lastName: "", department: "", designation: "", phone: "" })
+      setShowModal(false)
+      queryClient.invalidateQueries({ queryKey: ["employees"] })
+    } catch (err: unknown) {
+      setCreateError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setCreating(false)
+    }
+  }
 
   if (isPending) {
     return <EmployeeLoadingState label="Loading employees..." />
@@ -105,6 +150,15 @@ export default function EmployeesPage() {
             Manage your team members
           </p>
         </div>
+        <motion.button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 rounded-lg bg-[#22C55E] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#16A34A]"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          <IconPlus size={16} />
+          Add Employee
+        </motion.button>
       </motion.div>
 
       <motion.div
@@ -414,6 +468,147 @@ export default function EmployeesPage() {
           )}
         </div>
       </motion.div>
+
+      {/* Add Employee Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="mx-4 w-full max-w-lg rounded-2xl bg-white shadow-2xl"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+            >
+              <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 py-4">
+                <h2 className="text-lg font-bold text-[#1A202C]">Add Employee</h2>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="text-xl leading-none text-[#6B7280] hover:text-[#1A202C]"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="space-y-4 p-6">
+                {createError && (
+                  <div className="rounded-lg bg-[#FEE2E2] p-3 text-sm font-medium text-[#EF4444]">
+                    {createError}
+                  </div>
+                )}
+                {createSuccess && (
+                  <div className="rounded-lg bg-[#DCFCE7] p-3 text-sm font-medium text-[#22C55E]">
+                    {createSuccess}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                      First Name <span className="text-[#EF4444]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newUser.firstName}
+                      onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
+                      className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                      Last Name <span className="text-[#EF4444]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newUser.lastName}
+                      onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
+                      className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                      Email <span className="text-[#EF4444]">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={newUser.email}
+                      onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                      className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                      Password <span className="text-[#EF4444]">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={newUser.password}
+                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                      className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                      Department
+                    </label>
+                    <input
+                      type="text"
+                      value={newUser.department}
+                      onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
+                      className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                      Designation
+                    </label>
+                    <input
+                      type="text"
+                      value={newUser.designation}
+                      onChange={(e) => setNewUser({ ...newUser, designation: e.target.value })}
+                      className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="mb-1.5 block text-xs font-semibold text-[#1A202C]">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={newUser.phone}
+                      onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                      className="w-full rounded-lg border border-[#E5E7EB] px-3 py-2 text-sm text-[#1A202C] focus:border-[#22C55E] focus:ring-2 focus:ring-[#22C55E]/20 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 border-t border-[#E5E7EB] px-6 py-4">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 text-sm font-semibold text-[#6B7280] transition-colors hover:text-[#1A202C]"
+                >
+                  Cancel
+                </button>
+                <motion.button
+                  onClick={handleCreateUser}
+                  disabled={creating}
+                  className="flex items-center gap-2 rounded-lg bg-[#22C55E] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#16A34A] disabled:bg-[#9CA3AF]"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {creating && <IconLoader2 size={16} className="animate-spin" />}
+                  {creating ? "Creating..." : "Create Employee"}
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
